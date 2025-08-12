@@ -1,15 +1,15 @@
-import { Head, useForm } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
-import { FormEventHandler, useState } from 'react';
+import { Head, useForm } from "@inertiajs/react";
+import { FormEventHandler, useState } from "react";
 
-import InputError from '@/components/input-error';
-import TextLink from '@/components/text-link';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import AuthLayout from '@/layouts/auth-layout';
-import { KeyIcon, UserIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import InputError from "@/components/input-error";
+import TextLink from "@/components/text-link";
+
+import { AnimatedOrangeButton } from "@/components/AnimatedOrangeButton";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import AuthLayout from "@/layouts/auth-layout";
+import { EyeIcon, EyeSlashIcon, KeyIcon, UserIcon } from "@heroicons/react/24/outline";
 
 type LoginForm = {
     email: string;
@@ -24,34 +24,29 @@ interface LoginProps {
 
 export default function Login({ status, canResetPassword }: LoginProps) {
     const { data, setData, post, processing, errors, reset } = useForm<Required<LoginForm>>({
-        email: '',
-        password: '',
+        email: "",
+        password: "",
         remember: false,
     });
 
-    const [showPassword, setShowPassword] = useState(false)
-
-    const togglePasswordVisibility = () => {
-        setShowPassword(!showPassword)
-    }
+    const [showPassword, setShowPassword] = useState(false);
+    const togglePasswordVisibility = () => setShowPassword((v) => !v);
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post(route('login'), {
-            onFinish: () => reset('password'),
-        });
+        post(route("login"), { onFinish: () => reset("password") });
     };
 
     return (
-        <AuthLayout title="Log in to your account" description="Enter your email and password below to log in">
+        <AuthLayout title="Entre na sua conta" description="Digite seu e-mail e senha abaixo para fazer login">
             <Head title="Log in" />
 
             <form className="flex flex-col gap-6" onSubmit={submit}>
                 <div className="grid gap-6">
                     <div className="grid gap-2">
-                        <Label htmlFor="email">Email address</Label>
+                        <Label htmlFor="email">Email</Label>
                         <Input
-                            leftIcon={<UserIcon className={"size-4"}/> }
+                            leftIcon={<UserIcon className="size-4" />}
                             id="email"
                             type="email"
                             required
@@ -59,7 +54,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             tabIndex={1}
                             autoComplete="email"
                             value={data.email}
-                            onChange={(e) => setData('email', e.target.value)}
+                            onChange={(e) => setData("email", e.target.value)}
                             placeholder="your@email.com"
                         />
                         <InputError message={errors.email} />
@@ -67,12 +62,11 @@ export default function Login({ status, canResetPassword }: LoginProps) {
 
                     <div className="grid gap-2">
                         <div className="flex items-center">
-                            <Label htmlFor="password">Password</Label>
-
+                            <Label htmlFor="password">Senha</Label>
                         </div>
                         <Input
-                            leftIcon={<KeyIcon className={"size-4"} /> }
-                            rightIcon={!showPassword ? <EyeSlashIcon className={"size-4"}/> : <EyeIcon className={"size-4"} />}
+                            leftIcon={<KeyIcon className="size-4" />}
+                            rightIcon={!showPassword ? <EyeSlashIcon className="size-4" /> : <EyeIcon className="size-4" />}
                             onRightIconClick={togglePasswordVisibility}
                             id="password"
                             type={showPassword ? "text" : "password"}
@@ -80,8 +74,8 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             tabIndex={2}
                             autoComplete="current-password"
                             value={data.password}
-                            onChange={(e) => setData('password', e.target.value)}
-                            placeholder="Password"
+                            onChange={(e) => setData("password", e.target.value)}
+                            placeholder="sua-senha"
                         />
                         <InputError message={errors.password} />
                     </div>
@@ -91,22 +85,21 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             id="remember"
                             name="remember"
                             checked={data.remember}
-                            onClick={() => setData('remember', !data.remember)}
+                            onClick={() => setData("remember", !data.remember)}
                             tabIndex={3}
                         />
-                        <Label htmlFor="remember">Remember me</Label>
+                        <Label htmlFor="remember">Lembrar de mim</Label>
 
                         {canResetPassword && (
-                            <TextLink href={route('password.request')} className="ml-auto text-sm" tabIndex={5}>
-                                Forgot password?
+                            <TextLink href={route("password.request")} className="ml-auto text-sm" tabIndex={5}>
+                                Esqueceu sua senha?
                             </TextLink>
                         )}
                     </div>
 
-                    <Button type="submit" className="mt-4 w-full text-orange-400" tabIndex={4} disabled={processing}>
-                        {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                        Log in
-                    </Button>
+                    <AnimatedOrangeButton type="submit" processing={processing}>
+                        Entrar
+                    </AnimatedOrangeButton>
                 </div>
             </form>
 
