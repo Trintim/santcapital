@@ -1,39 +1,39 @@
-import Heading from '@/components/heading';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
-import { type PropsWithChildren } from 'react';
+import Heading from "@/components/heading";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
+import { type NavItem } from "@/types";
+import { Link } from "@inertiajs/react";
+import { type PropsWithChildren } from "react";
 
 const sidebarNavItems: NavItem[] = [
     {
-        title: 'Profile',
-        href: '/settings/profile',
+        title: "Profile",
+        href: "/settings/profile",
         icon: null,
     },
     {
-        title: 'Password',
-        href: '/settings/password',
+        title: "Password",
+        href: "/settings/password",
         icon: null,
     },
     {
-        title: 'Appearance',
-        href: '/settings/appearance',
+        title: "Appearance",
+        href: "/settings/appearance",
         icon: null,
     },
 ];
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
     // When server-side rendering, we only render the layout on the client...
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
         return null;
     }
 
     const currentPath = window.location.pathname;
 
     return (
-        <div className="px-4 py-6">
+        <div className="mx-auto flex h-full w-full max-w-7xl flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4 py-6">
             <Heading title="Settings" description="Manage your profile and account settings" />
 
             <div className="flex flex-col space-y-8 lg:flex-row lg:space-y-0 lg:space-x-12">
@@ -45,8 +45,8 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                 size="sm"
                                 variant="ghost"
                                 asChild
-                                className={cn('w-full justify-start', {
-                                    'bg-muted': currentPath === item.href,
+                                className={cn("w-full justify-start", {
+                                    "bg-muted": currentPath === item.href,
                                 })}
                             >
                                 <Link href={item.href} prefetch>

@@ -1,22 +1,21 @@
 import { NavMain } from "@/components/nav-main";
-import { NavUser } from "@/components/nav-user";
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { type NavItem } from "@/types";
 import { Link } from "@inertiajs/react";
-import { LayoutGrid } from "lucide-react";
+import { HomeIcon } from "lucide-react";
 import AppLogo from "./app-logo";
 
 const mainNavItems: NavItem[] = [
     {
         title: "Dashboard",
         href: "/dashboard",
-        icon: LayoutGrid,
+        icon: HomeIcon,
     },
 ];
 
 export function AppSidebar() {
     return (
-        <Sidebar collapsible="icon" variant="inset">
+        <Sidebar collapsible="icon" variant="sidebar">
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
@@ -32,10 +31,6 @@ export function AppSidebar() {
             <SidebarContent>
                 <NavMain items={mainNavItems} />
             </SidebarContent>
-
-            <SidebarFooter>
-                <NavUser />
-            </SidebarFooter>
         </Sidebar>
     );
 }
