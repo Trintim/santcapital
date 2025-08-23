@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enums\Auth\Role as RoleEnum;
 use Carbon\CarbonImmutable;
 use Eloquent;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -47,5 +48,23 @@ class Role extends Model
     public function permissions(): BelongsToMany
     {
         return $this->belongsToMany(Permission::class);
+    }
+
+    #[Scope]
+    public function admin(Builder $query): Builder
+    {
+        return $query->where('name', RoleEnum::Admin);
+    }
+
+    #[Scope]
+    public function employee(Builder $query): Builder
+    {
+        return $query->where('name', RoleEnum::Employee);
+    }
+
+    #[Scope]
+    public function customer(Builder $query): Builder
+    {
+        return $query->where('name', RoleEnum::Customer);
     }
 }
