@@ -24,6 +24,6 @@ class RolesPermissionsSeeder extends Seeder
 
         $userAdmin = Role::query()->where('name', RoleEnum::Admin)->first();
 
-        $userAdmin->permissions()->attach(Permission::query()->where('name', Can::ViewDashboard)->first());
+        $userAdmin->permissions()->attach(Permission::query()->whereIn('name', Can::cases())->first());
     }
 }
