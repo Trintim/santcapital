@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\Auth\Role as RoleEnum;
 use Carbon\CarbonImmutable;
 use Database\Factories\UserFactory;
 use Eloquent;
@@ -32,6 +33,7 @@ use Illuminate\Notifications\Notifiable;
  * @property-read int|null $permissions_count
  * @property-read Collection<int, Role> $roles
  * @property-read int|null $roles_count
+ *
  * @method static UserFactory factory($count = null, $state = [])
  * @method static Builder<static>|User newModelQuery()
  * @method static Builder<static>|User newQuery()
@@ -44,6 +46,7 @@ use Illuminate\Notifications\Notifiable;
  * @method static Builder<static>|User wherePassword($value)
  * @method static Builder<static>|User whereRememberToken($value)
  * @method static Builder<static>|User whereUpdatedAt($value)
+ *
  * @mixin Eloquent
  */
 class User extends Authenticatable
@@ -70,6 +73,11 @@ class User extends Authenticatable
         ];
     }
 
+    public function role(): ?RoleEnum
+    {
+        return $this->roles()->first()?->name;
+    }
+
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class);
@@ -78,5 +86,20 @@ class User extends Authenticatable
     public function permissions(): BelongsToMany
     {
         return $this->belongsToMany(Permission::class);
+    }
+
+    public function hasRole(RoleEnum $role): bool
+    {
+        return $this->roles()->where('name', $role)->exists();
+    }
+
+    public function hasAnyRole(array $roles): bool
+    {
+        return $this->roles()->whereIn('name', $roles)->exists();
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->hasRole(RoleEnum::Admin);
     }
 }
