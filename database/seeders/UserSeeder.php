@@ -19,6 +19,6 @@ class UserSeeder extends Seeder
             ]);
 
         User::factory(5)->asEmployee()->create();
-        User::factory(15)->asCustomer()->create();
+        User::factory(500)->asCustomer()->create();
     }
 }

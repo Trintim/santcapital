@@ -6,9 +6,11 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\Auth\Role as RoleEnum;
+use App\Traits\Models\Filterable;
 use Carbon\CarbonImmutable;
 use Database\Factories\UserFactory;
 use Eloquent;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -24,6 +26,11 @@ use Illuminate\Notifications\Notifiable;
  * @property string $email
  * @property CarbonImmutable|null $email_verified_at
  * @property string $password
+ * @property string|null $phone
+ * @property string|null $document
+ * @property CarbonImmutable|null $birthdate
+ * @property string|null $pix_key
+ * @property bool $is_active
  * @property string|null $remember_token
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
@@ -34,16 +41,24 @@ use Illuminate\Notifications\Notifiable;
  * @property-read Collection<int, Role> $roles
  * @property-read int|null $roles_count
  *
+ * @method static Builder<static>|User active()
  * @method static UserFactory factory($count = null, $state = [])
+ * @method static Builder<static>|User filters(array $params)
  * @method static Builder<static>|User newModelQuery()
  * @method static Builder<static>|User newQuery()
  * @method static Builder<static>|User query()
+ * @method static Builder<static>|User role(\App\Enums\Auth\Role $role)
+ * @method static Builder<static>|User whereBirthdate($value)
  * @method static Builder<static>|User whereCreatedAt($value)
+ * @method static Builder<static>|User whereDocument($value)
  * @method static Builder<static>|User whereEmail($value)
  * @method static Builder<static>|User whereEmailVerifiedAt($value)
  * @method static Builder<static>|User whereId($value)
+ * @method static Builder<static>|User whereIsActive($value)
  * @method static Builder<static>|User whereName($value)
  * @method static Builder<static>|User wherePassword($value)
+ * @method static Builder<static>|User wherePhone($value)
+ * @method static Builder<static>|User wherePixKey($value)
  * @method static Builder<static>|User whereRememberToken($value)
  * @method static Builder<static>|User whereUpdatedAt($value)
  *
@@ -51,6 +66,7 @@ use Illuminate\Notifications\Notifiable;
  */
 class User extends Authenticatable
 {
+    use Filterable;
     use HasFactory;
     use Notifiable;
 
@@ -70,12 +86,10 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password'          => 'hashed',
+            'is_active'         => 'boolean',
+            'birthdate'         => 'datetime',
+            'pix_key'           => 'string',
         ];
-    }
-
-    public function role(): ?RoleEnum
-    {
-        return $this->roles()->first()?->name;
     }
 
     public function roles(): BelongsToMany
@@ -98,8 +112,15 @@ class User extends Authenticatable
         return $this->roles()->whereIn('name', $roles)->exists();
     }
 
-    public function isAdmin(): bool
+    #[Scope]
+    public function role(Builder $query, RoleEnum $role): void
     {
-        return $this->hasRole(RoleEnum::Admin);
+        $query->whereRelation('roles', 'name', '=', $role);
+    }
+
+    #[Scope]
+    public function active(Builder $query): void
+    {
+        $query->where('is_active', true);
     }
 }

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}"
-      class="role-{{ auth()->user()->role()->value ?? 'customer' }}">
+      class="role-{{ auth()->user()?->roles()?->first()->name->value ?? 'customer' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">

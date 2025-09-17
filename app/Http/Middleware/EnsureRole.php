@@ -22,7 +22,7 @@ class EnsureRole
         $user = $request->user();
 
         if (! $user || ! $user->hasAnyRole($roles)) {
-            abort(403);
+            abort(Response::HTTP_NOT_FOUND);
         }
 
         return $next($request);

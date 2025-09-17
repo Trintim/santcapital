@@ -22,6 +22,7 @@ export interface NavItem {
     href: string;
     icon?: LucideIcon | null;
     isActive?: boolean;
+    routeName?: string;
 }
 
 export interface SharedData {
@@ -46,3 +47,10 @@ export interface User {
 
     [key: string]: unknown; // This allows for additional properties...
 }
+
+export type SortDirection = "asc" | "desc";
+
+export type SortState = {
+    "sort-by": string;
+    direction: SortDirection;
+};

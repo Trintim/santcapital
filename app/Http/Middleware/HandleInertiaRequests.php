@@ -52,11 +52,11 @@ class HandleInertiaRequests extends Middleware
             'auth'  => [
                 'user' => $user ? [
                     ...$user->toArray(),
-                    'role' => $user->role(),
+                    'role' => $user->roles()->first()?->name,
                 ] : null,
             ],
             'ziggy' => fn (): array => [
-                ...(new Ziggy)->toArray(),
+                ...(new Ziggy())->toArray(),
                 'location' => $request->url(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
