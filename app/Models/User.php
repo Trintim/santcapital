@@ -21,6 +21,7 @@ use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Notifications\Notifiable;
 use OwenIt\Auditing\Contracts\Auditable;
+use OwenIt\Auditing\Models\Audit;
 
 /**
  * @property int $id
@@ -36,6 +37,8 @@ use OwenIt\Auditing\Contracts\Auditable;
  * @property string|null $remember_token
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
+ * @property-read Collection<int, Audit> $audits
+ * @property-read int|null $audits_count
  * @property-read AdditionalCustomerInformation|null $customerAdditionalInformation
  * @property-read AdditionalEmployeeInformation|null $employeeAdditionalInformation
  * @property-read DatabaseNotificationCollection<int, DatabaseNotification> $notifications

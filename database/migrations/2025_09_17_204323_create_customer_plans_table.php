@@ -17,10 +17,11 @@ return new class () extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('investment_plan_id')->constrained('investment_plans');
-            $table->date('activated_on')->nullable(); // set on first approved deposit
+            $table->unsignedInteger('chosen_lockup_days')->nullable();
+            $table->date('activated_on')->nullable();
             $table->enum('status', ['pre_active', 'active', 'inactive'])->default('pre_active');
             $table->timestamps();
-            $table->index(['user_id', 'investment_plan_id']);
+            $table->index(['user_id', 'investment_plan_id', 'chosen_lockup_days'], 'idx_cp_user_plan_lockup');
         });
     }
 

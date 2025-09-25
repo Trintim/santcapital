@@ -33,6 +33,11 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password'          => static::$password ??= Hash::make('password'),
             'remember_token'    => Str::random(10),
+            'is_active'         => fake()->boolean(80),
+            'phone'             => fake()->unique()->numerify('55###########'),
+            'document'          => fake()->unique()->numerify('###########'),
+            'birthdate'         => fake()->dateTimeBetween('-70 years', '-18 years')->format('Y-m-d'),
+            'pix_key'           => fake()->unique()->email(),
         ];
     }
 

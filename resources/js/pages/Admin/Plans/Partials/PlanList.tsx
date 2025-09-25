@@ -63,7 +63,7 @@ export function PlanList({ pagination, filters }: Readonly<PlanProps>) {
     return (
         <div className="rounded-xl bg-accent px-3 pt-4">
             <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 className="text-lg font-bold">planes</h1>
+                <h1 className="text-lg font-bold">Planos</h1>
 
                 <div className="flex items-center gap-2">
                     <Input

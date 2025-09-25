@@ -16,6 +16,11 @@ enum Role: string
 
     case Customer = 'customer';
 
+    public function isAdmin(): bool
+    {
+        return $this === Role::Admin;
+    }
+
     public function routeByRole(): string
     {
         return match ($this) {

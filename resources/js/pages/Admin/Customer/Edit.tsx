@@ -26,8 +26,6 @@ export default function Edit({ customer }) {
         },
     });
 
-    console.log(data, customer);
-
     function submit(e: React.FormEvent) {
         e.preventDefault();
         put(route("admin.customers.update", customer.data.id));

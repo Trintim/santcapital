@@ -1,13 +1,7 @@
 import Paginate from "@/components/Pagination/Index";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useFilter } from "@/hooks/useFilter";
@@ -19,6 +13,8 @@ import { MoreHorizontal, PlusIcon, Search } from "lucide-react";
 import { route } from "ziggy-js";
 
 export function CustomerList({ pagination, filters }: Readonly<ClientProps>) {
+    console.log(pagination);
+
     const { data, setData } = useForm({
         search: filters.search || "",
         "per-page": filters["per-page"] || 15,
@@ -120,7 +116,9 @@ export function CustomerList({ pagination, filters }: Readonly<ClientProps>) {
                                         <TableCell className={"max-w-36 truncate"}>{client.email}</TableCell>
                                         <TableCell>{client.phone}</TableCell>
                                         <TableCell>{client.document}</TableCell>
-                                        <TableCell>{client.is_active}</TableCell>
+                                        <TableCell>
+                                            {client.is_active ? <Badge variant="default">Ativo</Badge> : <Badge variant="destructive">Inativo</Badge>}
+                                        </TableCell>
 
                                         <TableCell className="text-right">
                                             <DropdownMenu>
@@ -132,22 +130,11 @@ export function CustomerList({ pagination, filters }: Readonly<ClientProps>) {
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                                                    <DropdownMenuItem onClick={() => navigator.clipboard.writeText(String(client.id))}>
-                                                        Copiar ID
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem onClick={() => router.visit(`/admin/clients/${client.id}`)}>
-                                                        Ver cliente
-                                                    </DropdownMenuItem>
                                                     <DropdownMenuItem
                                                         onClick={() => router.visit(route("admin.customers.edit", { customer: client.id }))}
                                                     >
                                                         Editar
                                                     </DropdownMenuItem>
-                                                    {/* Exemplo extra:
-                        <DropdownMenuItem onClick={() => router.post(`/admin/clients/${id}/toggle-status`)}>
-                          Ativar/Desativar
-                        </DropdownMenuItem> */}
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </TableCell>
@@ -158,7 +145,7 @@ export function CustomerList({ pagination, filters }: Readonly<ClientProps>) {
                     </Table>
                 </div>
             </div>
-            {/*{console.log(pagination?.meta)}*/}
+
             <Paginate meta={pagination?.meta} perPage={data["per-page"]} setPerPage={handlePerPage} />
         </div>
     );

@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property-read InvestmentPlan $investmentPlan
+ *
  * @method static InvestmentPlanLockupOptionFactory factory($count = null, $state = [])
  * @method static Builder<static>|InvestmentPlanLockupOption newModelQuery()
  * @method static Builder<static>|InvestmentPlanLockupOption newQuery()
@@ -30,6 +31,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static Builder<static>|InvestmentPlanLockupOption whereIsDefault($value)
  * @method static Builder<static>|InvestmentPlanLockupOption whereLockupDays($value)
  * @method static Builder<static>|InvestmentPlanLockupOption whereUpdatedAt($value)
+ *
  * @mixin Eloquent
  */
 class InvestmentPlanLockupOption extends Model

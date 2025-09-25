@@ -73,6 +73,7 @@ Route::middleware(['auth', 'role:admin'])
                 Route::get('create', [Admin\CustomerPlanController::class, 'create'])->name('create');
                 Route::post('/', [Admin\CustomerPlanController::class, 'store'])->name('store');
                 Route::post('{customerPlan}/activate', [Admin\CustomerPlanController::class, 'activate'])->name('activate');
+                Route::delete('customer-plans/{customerPlan}', [Admin\CustomerPlanController::class, 'destroy'])->name('destroy');
             });
         // endregion
 
@@ -83,10 +84,10 @@ Route::middleware(['auth', 'role:admin'])
                 Route::get('/', [Admin\DepositController::class, 'index'])->name('index');
                 Route::get('/create', [Admin\DepositController::class, 'create'])->name('create');
                 Route::post('/', [Admin\DepositController::class, 'store'])->name('store');
-                Route::post('{deposit}/approve', [Admin\DepositController::class, 'approve'])->name('approve');
-                Route::post('{deposit}/reject', [Admin\DepositController::class, 'reject'])->name('reject');
+                Route::post('{transaction}/approve', [Admin\DepositController::class, 'approve'])->name('approve');
+                Route::post('{transaction}/reject', [Admin\DepositController::class, 'reject'])->name('reject');
+                Route::delete('deposits/{transaction}', [Admin\DepositController::class, 'destroy'])->name('destroy'); // remove aporte (não aprovado)
             });
-
     });
 
 Route::middleware(['auth', 'role:admin,employee'])

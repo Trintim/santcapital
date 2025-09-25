@@ -2,7 +2,7 @@ import { NavMain } from "@/components/nav-main";
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { type NavItem } from "@/types";
 import { Link } from "@inertiajs/react";
-import { HomeIcon, TagIcon, UserRoundCheckIcon, UsersIcon } from "lucide-react";
+import { HandCoinsIcon, HomeIcon, TagIcon, UserPenIcon, UserRoundCheckIcon, UsersIcon } from "lucide-react";
 import AppLogo from "./app-logo";
 
 const mainNavItems: NavItem[] = [
@@ -25,6 +25,16 @@ const mainNavItems: NavItem[] = [
         title: "Planos",
         href: "/admin/planos",
         icon: TagIcon,
+    },
+    {
+        title: "Planos de Clientes",
+        href: "/admin/planos-cliente",
+        icon: UserPenIcon,
+    },
+    {
+        title: "Aportes",
+        href: "/admin/depositos",
+        icon: HandCoinsIcon,
     },
 ];
 

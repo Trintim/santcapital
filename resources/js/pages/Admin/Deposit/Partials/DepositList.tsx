@@ -12,20 +12,20 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useFilter } from "@/hooks/useFilter";
 import { useSort } from "@/hooks/useSort";
-import { EmployeeProps } from "@/pages/Admin/Employee/types";
 import { filterQueryParams } from "@/utils";
 import { router, useForm } from "@inertiajs/react";
 import { MoreHorizontal, PlusIcon, Search } from "lucide-react";
+import { toast } from "sonner";
 import { route } from "ziggy-js";
 
-export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
+export function DepositList({ pagination, filters }) {
     const { data, setData } = useForm({
         search: filters.search || "",
         "per-page": filters["per-page"] || 15,
     });
 
     const { handleDebounceFilter } = useFilter({
-        path: route("admin.employees.index"),
+        path: route("admin.deposits.index"),
         initialData: data,
         onDataChange: setData,
     });
@@ -40,7 +40,7 @@ export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
 
         setData(updatedData);
 
-        router.get(route("admin.employees.index"), filterQueryParams(updatedData), {
+        router.get(route("admin.deposits.index"), filterQueryParams(updatedData), {
             preserveState: true,
             preserveScroll: true,
         });
@@ -51,32 +51,48 @@ export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
 
         const query = { ...data, ...newSort };
 
-        router.get(route("admin.employees.index"), filterQueryParams(query), {
+        router.get(route("admin.deposits.index"), filterQueryParams(query), {
             preserveState: true,
             preserveScroll: true,
         });
     };
 
-    const hasEmployees = pagination.data.length > 0;
+    function approve(id: number) {
+        router.post(route("admin.deposits.approve", { transaction: id }));
+    }
+
+    function reject(id: number) {
+        router.post(route("admin.deposits.reject", { transaction: id }));
+    }
+
+    function removeTx(id: number) {
+        router.delete(route("admin.deposits.destroy", { transaction: id }), {
+            onError: (errors) => {
+                toast.warning(errors.transaction);
+            },
+        });
+    }
+
+    const hasDeposits = pagination.data.length > 0;
 
     return (
         <div className="rounded-xl bg-accent px-3 pt-4">
             <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 className="text-lg font-bold">Funcionários</h1>
+                <h1 className="text-lg font-bold">Aportes</h1>
 
                 <div className="flex items-center gap-2">
                     <Input
                         leftIcon={<Search className="size-4" />}
                         name="search"
-                        placeholder="Buscar funcionários..."
+                        placeholder="Buscar por nome, email, telefone ou documento"
                         id="search"
                         value={data.search}
                         onChange={handleDebounceFilter}
                         className="w-full sm:max-w-sm"
                     />
 
-                    <Button type="button" size={"sm"} className="cursor-pointer" onClick={() => router.visit(route("admin.employees.create"))}>
-                        <span className="text-xs">Novo Funcionário</span>
+                    <Button type="button" size={"sm"} className="cursor-pointer" onClick={() => router.visit(route("admin.deposits.create"))}>
+                        <span className="text-xs">Novo aporte</span>
                         <PlusIcon className="size-4" />
                     </Button>
                 </div>
@@ -89,13 +105,13 @@ export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
                             <TableRow>
                                 <TableHead>ID</TableHead>
                                 <TableHead sortable sortBy={"name"} sortDirection={getSortDirection("name")} onSort={handleOnSort}>
-                                    Nome
+                                    Cliente
                                 </TableHead>
                                 <TableHead sortable sortBy={"email"} sortDirection={getSortDirection("email")} onSort={handleOnSort}>
-                                    Email
+                                    Plano
                                 </TableHead>
-                                <TableHead>Telefone</TableHead>
-                                <TableHead>CPF/CNPJ</TableHead>
+                                <TableHead>Valor</TableHead>
+                                <TableHead>Data</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>
                                     <span className="sr-only">Ações</span>
@@ -104,21 +120,38 @@ export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
                         </TableHeader>
 
                         <TableBody>
-                            {!hasEmployees ? (
+                            {!hasDeposits ? (
                                 <TableRow>
                                     <TableCell colSpan={7} className="h-24 text-center text-sm text-muted-foreground">
-                                        Nenhum funcionário encontrado.
+                                        Nenhum aporte encontrado.
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                pagination.data.map((employee, index) => (
-                                    <TableRow className={"hover:!bg-secondary/10"} key={String(employee.id)}>
+                                pagination.data.map((t, index) => (
+                                    <TableRow className={"hover:!bg-secondary/10"} key={String(t.id)}>
                                         <TableCell>{index + 1}</TableCell>
-                                        <TableCell className={"max-w-32 truncate"}>{employee.name}</TableCell>
-                                        <TableCell className={"max-w-36 truncate"}>{employee.email}</TableCell>
-                                        <TableCell>{employee.phone}</TableCell>
-                                        <TableCell>{employee.document}</TableCell>
-                                        <TableCell>{employee.is_active}</TableCell>
+                                        <TableCell className={"max-w-32 truncate"}>
+                                            <div className="flex flex-col">
+                                                {t.customer_plan?.customer?.name}
+                                                <span className="text-xs text-muted-foreground"> ({t.customer_plan?.customer?.email})</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className={"max-w-36 truncate"}>{t.customer_plan?.plan?.name}</TableCell>
+                                        <TableCell className={"max-w-36 truncate"}>
+                                            R$ {Number(t.amount).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                                        </TableCell>
+                                        <TableCell>
+                                            {t.status === "approved" ? "Aprovado" : t.status === "rejected" ? "Rejeitado" : "Pendente"}
+                                        </TableCell>
+                                        <TableCell>
+                                            {new Date(t.created_at).toLocaleDateString("pt-BR", {
+                                                day: "2-digit",
+                                                month: "2-digit",
+                                                year: "2-digit",
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                            })}
+                                        </TableCell>
 
                                         <TableCell className="text-right">
                                             <DropdownMenu>
@@ -130,19 +163,16 @@ export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                                                    <DropdownMenuItem onClick={() => navigator.clipboard.writeText(String(employee.id))}>
-                                                        Copiar ID
-                                                    </DropdownMenuItem>
                                                     <DropdownMenuSeparator />
-                                                    <DropdownMenuItem
-                                                        onClick={() => router.visit(route("admin.employees.edit", { employee: employee.id }))}
-                                                    >
-                                                        Editar
+                                                    {t.status === "pending" && (
+                                                        <>
+                                                            <DropdownMenuItem onClick={() => approve(t.id)}>Aprovar</DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => reject(t.id)}>Rejeitar</DropdownMenuItem>
+                                                        </>
+                                                    )}
+                                                    <DropdownMenuItem onClick={() => removeTx(t.id)} className="text-red-600">
+                                                        Excluir
                                                     </DropdownMenuItem>
-                                                    {/* Exemplo extra:
-                        <DropdownMenuItem onClick={() => router.post(`/admin/employees/${id}/toggle-status`)}>
-                          Ativar/Desativar
-                        </DropdownMenuItem> */}
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </TableCell>

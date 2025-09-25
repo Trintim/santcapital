@@ -22,6 +22,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property-read int|null $permissions_count
  * @property-read Collection<int, User> $users
  * @property-read int|null $users_count
+ *
+ * @method static Builder<static>|Role admin()
+ * @method static Builder<static>|Role customer()
+ * @method static Builder<static>|Role employee()
  * @method static Builder<static>|Role newModelQuery()
  * @method static Builder<static>|Role newQuery()
  * @method static Builder<static>|Role query()
@@ -29,6 +33,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @method static Builder<static>|Role whereId($value)
  * @method static Builder<static>|Role whereName($value)
  * @method static Builder<static>|Role whereUpdatedAt($value)
+ *
  * @mixin Eloquent
  */
 class Role extends Model

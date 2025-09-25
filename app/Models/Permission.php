@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property-read int|null $roles_count
  * @property-read Collection<int, User> $users
  * @property-read int|null $users_count
+ *
  * @method static Builder<static>|Permission newModelQuery()
  * @method static Builder<static>|Permission newQuery()
  * @method static Builder<static>|Permission query()
@@ -28,6 +29,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @method static Builder<static>|Permission whereId($value)
  * @method static Builder<static>|Permission whereName($value)
  * @method static Builder<static>|Permission whereUpdatedAt($value)
+ *
  * @mixin Eloquent
  */
 class Permission extends Model
