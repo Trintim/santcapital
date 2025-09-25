@@ -193,7 +193,7 @@ export function CustomerPlanList({ pagination, filters }) {
                                                                     // desfoca o trigger
                                                                     const active = document.activeElement as HTMLElement | null;
                                                                     active?.blur?.();
-                                                                    router.patch(
+                                                                    router.post(
                                                                         route("admin.customer-plans.activate", { customerPlan: cp.id }),
                                                                         {},
                                                                         { preserveState: true, preserveScroll: true },

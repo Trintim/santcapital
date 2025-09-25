@@ -1,4 +1,5 @@
 import Paginate from "@/components/Pagination/Index";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -19,6 +20,7 @@ import { toast } from "sonner";
 import { route } from "ziggy-js";
 
 export function DepositList({ pagination, filters }) {
+    console.log("pagination", pagination);
     const { data, setData } = useForm({
         search: filters.search || "",
         "per-page": filters["per-page"] || 15,
@@ -140,17 +142,26 @@ export function DepositList({ pagination, filters }) {
                                         <TableCell className={"max-w-36 truncate"}>
                                             R$ {Number(t.amount).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                                         </TableCell>
+
                                         <TableCell>
-                                            {t.status === "approved" ? "Aprovado" : t.status === "rejected" ? "Rejeitado" : "Pendente"}
-                                        </TableCell>
-                                        <TableCell>
-                                            {new Date(t.created_at).toLocaleDateString("pt-BR", {
+                                            {new Date(t.effective_date).toLocaleDateString("pt-BR", {
                                                 day: "2-digit",
                                                 month: "2-digit",
-                                                year: "2-digit",
-                                                hour: "2-digit",
-                                                minute: "2-digit",
+                                                year: "numeric",
                                             })}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge
+                                                className={
+                                                    t.status === "approved"
+                                                        ? "bg-emerald-600 hover:bg-emerald-600"
+                                                        : t.status === "rejected"
+                                                          ? "bg-red-600 hover:bg-red-600"
+                                                          : "bg-yellow-500 hover:bg-yellow-500"
+                                                }
+                                            >
+                                                {t.status === "approved" ? "Aprovado" : t.status === "rejected" ? "Rejeitado" : "Pendente"}
+                                            </Badge>
                                         </TableCell>
 
                                         <TableCell className="text-right">
