@@ -1,0 +1,149 @@
+<?php
+
+declare(strict_types = 1);
+
+namespace App\Http\Controllers\Admin;
+
+use App\Enums\Auth\Role as RoleEnum;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Client\IndexRequest;
+use App\Http\Requests\Admin\Client\StoreCustomerRequest;
+use App\Http\Requests\Admin\Client\UpdateCustomerRequest;
+use App\Models\Role;
+use App\Models\User;
+use App\Resources\Admin\ClientResource;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Inertia\Inertia;
+use Inertia\Response;
+use Throwable;
+
+class CustomerController extends Controller
+{
+    public function index(IndexRequest $request): Response
+    {
+        $sortBy    = $request->validated('sort-by', 'name');
+        $direction = $request->validated('direction', 'asc');
+        $search    = $request->validated('search');
+        $perPage   = $request->validated('per-page', 15);
+
+        $clients = ClientResource::collection(
+            User::query()
+                ->select(['id', 'name', 'email', 'phone', 'document', 'is_active'])
+                ->with(['customerAdditionalInformation'])
+                ->role(RoleEnum::Customer) // @phpstan-ignore-line
+                ->filters([
+                    'name' => $search,
+                ])
+                ->orderBy(column: $sortBy, direction: $direction)
+                ->paginate($perPage)
+                ->onEachSide(1)
+                ->withQueryString(),
+        );
+
+        return inertia('Admin/Customer/Index', [
+            'pagination' => $clients,
+            'filters'    => [
+                'search'    => $search,
+                'per-page'  => $perPage,
+                'sort-by'   => $sortBy,
+                'direction' => $direction,
+            ],
+        ]);
+    }
+
+    public function create()
+    {
+        return Inertia::render('Admin/Customer/Create');
+    }
+
+    public function store(StoreCustomerRequest $request): RedirectResponse
+    {
+        $validated = $request->validated();
+
+        $password = Str::password(16);
+
+        try {
+            DB::transaction(static function () use ($validated, $password) {
+                /** @var User $user */
+                $user = User::create([
+                    'name'      => Arr::get($validated, 'name'),
+                    'email'     => Arr::get($validated, 'email'),
+                    'phone'     => Arr::get($validated, 'phone'),
+                    'document'  => Arr::get($validated, 'document'),
+                    'birthdate' => Arr::get($validated, 'birthdate'),
+                    'pix_key'   => Arr::get($validated, 'pix_key'),
+                    'password'  => Hash::make($password),
+                    'is_active' => Arr::get($validated, 'is_active', true),
+                ]);
+
+                $role = Role::query()
+                    ->select(['id'])
+                    ->where('name', RoleEnum::Customer) // @phpstan-ignore-line
+                    ->firstOrFail();
+
+                $user->roles()->syncWithoutDetaching([$role->id]);
+
+                if (filled(Arr::get($validated, 'additional'))) {
+                    $user->customerAdditionalInformation()->create(Arr::get($validated, 'additional'));
+                }
+            });
+
+            return to_route('admin.customers.index')->with('success', 'Cliente criado com sucesso');
+        } catch (Throwable $e) {
+            return to_route('admin.customers.index')->with('error', 'Erro ao criar cliente: ' . $e->getMessage());
+        }
+    }
+
+    public function edit(User $customer)
+    {
+        return Inertia::render('Admin/Customer/Edit', [
+            'customer' => ClientResource::make($customer->load(['customerAdditionalInformation'])),
+        ]);
+    }
+
+    public function update(UpdateCustomerRequest $request, User $customer): RedirectResponse
+    {
+        $validated = $request->validated();
+
+        try {
+            DB::transaction(static function () use ($validated, $customer) {
+                $customer->update([
+                    'name'      => Arr::get($validated, 'name'),
+                    'email'     => Arr::get($validated, 'email'),
+                    'phone'     => Arr::get($validated, 'phone'),
+                    'document'  => Arr::get($validated, 'document'),
+                    'birthdate' => Arr::get($validated, 'birthdate'),
+                    'pix_key'   => Arr::get($validated, 'pix_key'),
+                    'is_active' => Arr::get($validated, 'is_active', true),
+                ]);
+
+                if (filled(Arr::get($validated, 'password'))) {
+                    $customer->update([
+                        'password' => Hash::make(Arr::get($validated, 'password')),
+                    ]);
+                }
+
+                if (filled(Arr::get($validated, 'additional'))) {
+                    $customer->customerAdditionalInformation()->updateOrCreate([
+                        'user_id' => $customer->id,
+                    ], Arr::get($validated, 'additional'));
+                }
+            });
+
+            return to_route('admin.customers.index')->with('success', 'Cliente atualizado com sucesso');
+        } catch (Throwable $e) {
+            return to_route('admin.customers.index')->with('error', 'Erro ao atualizar cliente: ' . $e->getMessage());
+        }
+    }
+
+    public function destroy(User $customer): RedirectResponse
+    {
+        $customer->delete();
+
+        return to_route('admin.customers.index')->with('success', 'Cliente excluído com sucesso');
+    }
+}

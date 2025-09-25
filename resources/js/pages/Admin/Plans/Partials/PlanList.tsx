@@ -1,4 +1,5 @@
 import Paginate from "@/components/Pagination/Index";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -12,20 +13,20 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useFilter } from "@/hooks/useFilter";
 import { useSort } from "@/hooks/useSort";
-import { ClientProps } from "@/pages/Admin/Clients/types";
+import { PlanProps } from "@/pages/Admin/Plans/types";
 import { filterQueryParams } from "@/utils";
 import { router, useForm } from "@inertiajs/react";
 import { MoreHorizontal, PlusIcon, Search } from "lucide-react";
 import { route } from "ziggy-js";
 
-export function ClientList({ pagination, filters }: Readonly<ClientProps>) {
+export function PlanList({ pagination, filters }: Readonly<PlanProps>) {
     const { data, setData } = useForm({
         search: filters.search || "",
         "per-page": filters["per-page"] || 15,
     });
 
     const { handleDebounceFilter } = useFilter({
-        path: route("admin.clients.index"),
+        path: route("admin.plans.index"),
         initialData: data,
         onDataChange: setData,
     });
@@ -40,46 +41,43 @@ export function ClientList({ pagination, filters }: Readonly<ClientProps>) {
 
         setData(updatedData);
 
-        router.get(route("admin.clients.index"), filterQueryParams(updatedData), {
+        router.get(route("admin.plans.index"), filterQueryParams(updatedData), {
             preserveState: true,
             preserveScroll: true,
         });
     };
 
     const handleOnSort = (key: string) => {
-        console.log(key);
         const newSort = handleSort(key);
 
         const query = { ...data, ...newSort };
 
-        router.get(route("admin.clients.index"), filterQueryParams(query), {
+        router.get(route("admin.plans.index"), filterQueryParams(query), {
             preserveState: true,
             preserveScroll: true,
         });
     };
 
-    const hasClients = pagination.data.length > 0;
-
-    const headers = ["ID", "Nome", "Email", "Telefone", "CPF/CNPJ", "Status", ""];
+    const hasPlans = pagination.data.length > 0;
 
     return (
         <div className="rounded-xl bg-accent px-3 pt-4">
             <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 className="text-lg font-bold">Clientes</h1>
+                <h1 className="text-lg font-bold">planes</h1>
 
                 <div className="flex items-center gap-2">
                     <Input
                         leftIcon={<Search className="size-4" />}
                         name="search"
-                        placeholder="Buscar clientes..."
+                        placeholder="Buscar planes..."
                         id="search"
                         value={data.search}
                         onChange={handleDebounceFilter}
                         className="w-full sm:max-w-sm"
                     />
 
-                    <Button type="button" size={"sm"} className="cursor-pointer" onClick={() => router.visit("/admin/clients/create")}>
-                        <span className="text-xs">Novo Cliente</span>
+                    <Button type="button" size={"sm"} className="cursor-pointer" onClick={() => router.visit(route("admin.plans.create"))}>
+                        <span className="text-xs">Novo plano</span>
                         <PlusIcon className="size-4" />
                     </Button>
                 </div>
@@ -95,11 +93,10 @@ export function ClientList({ pagination, filters }: Readonly<ClientProps>) {
                                     Nome
                                 </TableHead>
                                 <TableHead sortable sortBy={"email"} sortDirection={getSortDirection("email")} onSort={handleOnSort}>
-                                    Email
+                                    Carência (dias)
                                 </TableHead>
-                                <TableHead>Telefone</TableHead>
-                                <TableHead>CPF/CNPJ</TableHead>
-                                <TableHead>Status</TableHead>
+                                <TableHead>Aporte mínimo</TableHead>
+                                <TableHead className={"min-w-18"}>Status</TableHead>
                                 <TableHead>
                                     <span className="sr-only">Ações</span>
                                 </TableHead>
@@ -107,21 +104,22 @@ export function ClientList({ pagination, filters }: Readonly<ClientProps>) {
                         </TableHeader>
 
                         <TableBody>
-                            {!hasClients ? (
+                            {!hasPlans ? (
                                 <TableRow>
                                     <TableCell colSpan={7} className="h-24 text-center text-sm text-muted-foreground">
-                                        Nenhum cliente encontrado.
+                                        Nenhum plane encontrado.
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                pagination.data.map((client, index) => (
-                                    <TableRow className={"hover:!bg-secondary/10"} key={String(client.id)}>
+                                pagination.data.map((plan, index) => (
+                                    <TableRow className={"hover:!bg-secondary/10"} key={String(plan.id)}>
                                         <TableCell>{index + 1}</TableCell>
-                                        <TableCell className={"max-w-32 truncate"}>{client.name}</TableCell>
-                                        <TableCell className={"max-w-36 truncate"}>{client.email}</TableCell>
-                                        <TableCell>{client.phone}</TableCell>
-                                        <TableCell>{client.document}</TableCell>
-                                        <TableCell>{client.is_active}</TableCell>
+                                        <TableCell className={"max-w-32 truncate"}>{plan.name}</TableCell>
+                                        <TableCell className={"max-w-36 truncate"}>{plan.lockup_days}</TableCell>
+                                        <TableCell>
+                                            R$ {Number(plan.minimum_deposit_amount).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                                        </TableCell>
+                                        <TableCell>{plan.is_active ? <Badge>Ativo</Badge> : <Badge variant="destructive">Inativo</Badge>}</TableCell>
 
                                         <TableCell className="text-right">
                                             <DropdownMenu>
@@ -133,20 +131,30 @@ export function ClientList({ pagination, filters }: Readonly<ClientProps>) {
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                                                    <DropdownMenuItem onClick={() => navigator.clipboard.writeText(String(client.id))}>
-                                                        Copiar ID
-                                                    </DropdownMenuItem>
                                                     <DropdownMenuSeparator />
-                                                    <DropdownMenuItem onClick={() => router.visit(`/admin/clients/${client.id}`)}>
-                                                        Ver cliente
+                                                    <DropdownMenuItem
+                                                        className={"cursor-pointer"}
+                                                        onClick={() => router.visit(route("admin.plans.show", { plan: plan.id }))}
+                                                    >
+                                                        Ver plano
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => router.visit(`/admin/clients/${client.id}/edit`)}>
+                                                    <DropdownMenuItem
+                                                        className={"cursor-pointer"}
+                                                        onClick={() => router.visit(route("admin.plans.edit", { plan: plan.id }))}
+                                                    >
                                                         Editar
                                                     </DropdownMenuItem>
-                                                    {/* Exemplo extra:
-                        <DropdownMenuItem onClick={() => router.post(`/admin/clients/${id}/toggle-status`)}>
-                          Ativar/Desativar
-                        </DropdownMenuItem> */}
+
+                                                    <DropdownMenuItem
+                                                        className={"cursor-pointer"}
+                                                        onClick={() =>
+                                                            router.patch(route("admin.plans.toggle-active", { plan: plan.id }), {
+                                                                preserveScroll: true,
+                                                            })
+                                                        }
+                                                    >
+                                                        {plan.is_active ? "Desativar" : "Ativar"}
+                                                    </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </TableCell>

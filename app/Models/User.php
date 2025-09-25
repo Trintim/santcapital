@@ -15,10 +15,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Notifications\Notifiable;
+use OwenIt\Auditing\Contracts\Auditable;
 
 /**
  * @property int $id
@@ -34,6 +36,8 @@ use Illuminate\Notifications\Notifiable;
  * @property string|null $remember_token
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
+ * @property-read AdditionalCustomerInformation|null $customerAdditionalInformation
+ * @property-read AdditionalEmployeeInformation|null $employeeAdditionalInformation
  * @property-read DatabaseNotificationCollection<int, DatabaseNotification> $notifications
  * @property-read int|null $notifications_count
  * @property-read Collection<int, Permission> $permissions
@@ -47,7 +51,7 @@ use Illuminate\Notifications\Notifiable;
  * @method static Builder<static>|User newModelQuery()
  * @method static Builder<static>|User newQuery()
  * @method static Builder<static>|User query()
- * @method static Builder<static>|User role(\App\Enums\Auth\Role $role)
+ * @method static Builder<static>|User role(RoleEnum $role)
  * @method static Builder<static>|User whereBirthdate($value)
  * @method static Builder<static>|User whereCreatedAt($value)
  * @method static Builder<static>|User whereDocument($value)
@@ -64,11 +68,12 @@ use Illuminate\Notifications\Notifiable;
  *
  * @mixin Eloquent
  */
-class User extends Authenticatable
+class User extends Authenticatable implements Auditable
 {
     use Filterable;
     use HasFactory;
     use Notifiable;
+    use \OwenIt\Auditing\Auditable;
 
     protected $fillable = [
         'name',
@@ -122,5 +127,15 @@ class User extends Authenticatable
     public function active(Builder $query): void
     {
         $query->where('is_active', true);
+    }
+
+    public function employeeAdditionalInformation(): HasOne
+    {
+        return $this->hasOne(AdditionalEmployeeInformation::class);
+    }
+
+    public function customerAdditionalInformation(): HasOne
+    {
+        return $this->hasOne(AdditionalCustomerInformation::class);
     }
 }

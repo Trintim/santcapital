@@ -19,7 +19,7 @@ class ClientResource extends JsonResource
             'email'     => $this->email,
             'phone'     => $this->phone,
             'document'  => $this->document,
-            'is_active' => (bool) $this->is_active,
+            'is_active' => $this->is_active,
         ];
     }
 }
