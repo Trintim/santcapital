@@ -1,9 +1,11 @@
+import { MaskedInput } from "@/components/form/MaskedInput";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AppLayout from "@/layouts/app-layout";
+import { formatCpfCnpj, formatPhoneBr } from "@/lib/utils";
 import { Head, Link, useForm } from "@inertiajs/react";
 
 export default function Edit({ customer }) {
@@ -46,6 +48,7 @@ export default function Edit({ customer }) {
                             <Input id="name" value={data.name} onChange={(e) => setData("name", e.target.value)} />
                             {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
                         </div>
+
                         <div>
                             <Label htmlFor="email">E-mail</Label>
                             <Input id="email" value={data.email} onChange={(e) => setData("email", e.target.value)} />
@@ -53,18 +56,25 @@ export default function Edit({ customer }) {
                         </div>
 
                         <div>
-                            <Label htmlFor="password">Nova senha (opcional)</Label>
+                            <Label htmlFor="password">Nova senha</Label>
                             <Input id="password" type="password" value={data.password} onChange={(e) => setData("password", e.target.value)} />
                             {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
                         </div>
 
                         <div>
-                            <Label htmlFor="phone">Telefone (11 dígitos)</Label>
-                            <Input id="phone" value={data.phone ?? ""} onChange={(e) => setData("phone", e.target.value)} />
+                            <Label htmlFor="phone">Telefone</Label>
+                            <MaskedInput
+                                id="phone"
+                                mask={formatPhoneBr}
+                                value={data.phone ?? ""}
+                                onChange={(e) => setData("phone", e.target.value)}
+                                placeholder="(00) 00000-0000"
+                            />
                             {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone}</p>}
                         </div>
+
                         <div>
-                            <Label htmlFor="document">Documento (14 dígitos)</Label>
+                            <Label htmlFor="document">CPF/CNPJ</Label>
                             <Input id="document" value={data.document ?? ""} onChange={(e) => setData("document", e.target.value)} />
                             {errors.document && <p className="mt-1 text-sm text-red-500">{errors.document}</p>}
                         </div>
@@ -74,9 +84,15 @@ export default function Edit({ customer }) {
                             <Input id="birthdate" type="date" value={data.birthdate ?? ""} onChange={(e) => setData("birthdate", e.target.value)} />
                             {errors.birthdate && <p className="mt-1 text-sm text-red-500">{errors.birthdate}</p>}
                         </div>
+
                         <div>
                             <Label htmlFor="pix_key">Chave PIX</Label>
-                            <Input id="pix_key" value={data.pix_key ?? ""} onChange={(e) => setData("pix_key", e.target.value)} />
+                            <input
+                                id="pix_key"
+                                className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                                value={data.pix_key ?? ""}
+                                onChange={(e) => setData("pix_key", e.target.value)}
+                            />
                             {errors.pix_key && <p className="mt-1 text-sm text-red-500">{errors.pix_key}</p>}
                         </div>
 
@@ -93,6 +109,7 @@ export default function Edit({ customer }) {
                                     <Label htmlFor="beneficiary_name">Beneficiário 1 — Nome</Label>
                                     <Input
                                         id="beneficiary_name"
+                                        className="w-full rounded-md border bg-background px-3 py-2 text-sm"
                                         value={data.additional.beneficiary_name}
                                         onChange={(e) =>
                                             setData("additional", {
@@ -104,8 +121,9 @@ export default function Edit({ customer }) {
                                 </div>
                                 <div>
                                     <Label htmlFor="beneficiary_document">Beneficiário 1 — Documento</Label>
-                                    <Input
+                                    <MaskedInput
                                         id="beneficiary_document"
+                                        mask={formatCpfCnpj}
                                         value={data.additional.beneficiary_document}
                                         onChange={(e) =>
                                             setData("additional", {
@@ -113,12 +131,14 @@ export default function Edit({ customer }) {
                                                 beneficiary_document: e.target.value,
                                             })
                                         }
+                                        placeholder="CPF/CNPJ"
                                     />
                                 </div>
                                 <div>
                                     <Label htmlFor="beneficiary_phone">Beneficiário 1 — Telefone</Label>
-                                    <Input
+                                    <MaskedInput
                                         id="beneficiary_phone"
+                                        mask={formatPhoneBr}
                                         value={data.additional.beneficiary_phone}
                                         onChange={(e) =>
                                             setData("additional", {
@@ -126,6 +146,7 @@ export default function Edit({ customer }) {
                                                 beneficiary_phone: e.target.value,
                                             })
                                         }
+                                        placeholder="(00) 00000-0000"
                                     />
                                 </div>
                             </div>
@@ -133,8 +154,9 @@ export default function Edit({ customer }) {
                             <div className="grid gap-4 md:grid-cols-3">
                                 <div>
                                     <Label htmlFor="beneficiary_2_name">Beneficiário 2 — Nome</Label>
-                                    <Input
+                                    <input
                                         id="beneficiary_2_name"
+                                        className="w-full rounded-md border bg-background px-3 py-2 text-sm"
                                         value={data.additional.beneficiary_2_name}
                                         onChange={(e) =>
                                             setData("additional", {
@@ -146,8 +168,9 @@ export default function Edit({ customer }) {
                                 </div>
                                 <div>
                                     <Label htmlFor="beneficiary_2_document">Beneficiário 2 — Documento</Label>
-                                    <Input
+                                    <MaskedInput
                                         id="beneficiary_2_document"
+                                        mask={formatCpfCnpj}
                                         value={data.additional.beneficiary_2_document}
                                         onChange={(e) =>
                                             setData("additional", {
@@ -155,12 +178,14 @@ export default function Edit({ customer }) {
                                                 beneficiary_2_document: e.target.value,
                                             })
                                         }
+                                        placeholder="CPF/CNPJ"
                                     />
                                 </div>
                                 <div>
                                     <Label htmlFor="beneficiary_2_phone">Beneficiário 2 — Telefone</Label>
-                                    <Input
+                                    <MaskedInput
                                         id="beneficiary_2_phone"
+                                        mask={formatPhoneBr}
                                         value={data.additional.beneficiary_2_phone}
                                         onChange={(e) =>
                                             setData("additional", {
@@ -168,6 +193,7 @@ export default function Edit({ customer }) {
                                                 beneficiary_2_phone: e.target.value,
                                             })
                                         }
+                                        placeholder="(00) 00000-0000"
                                     />
                                 </div>
                             </div>

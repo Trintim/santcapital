@@ -67,25 +67,19 @@ export function CustomerPlanList({ pagination, filters }) {
     const hasCustomerPlans = pagination.data.length > 0;
     const formatDate = (iso?: string | null) => (iso ? new Date(iso).toLocaleDateString("pt-BR") : "—");
 
-    // ===== Dropdown controlado por linha (para fechar antes de abrir o dialog) =====
+    // Dropdown controlado por linha (fecha antes de abrir dialog)
     const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
 
-    // ===== AlertDialog CONTROLADO =====
+    // AlertDialog CONTROLADO
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [confirmId, setConfirmId] = useState<number | null>(null);
     const [confirmLabel, setConfirmLabel] = useState<string>("");
-
+    const [deleting, setDeleting] = useState(false);
     const cancelBtnRef = useRef<HTMLButtonElement | null>(null);
 
     const openConfirm = (id: number, label: string) => {
-        // 1) fecha o menu
         setMenuOpenId(null);
-        // 2) tira o foco do botão que estava no dropdown trigger
-        const active = document.activeElement as HTMLElement | null;
-        if (active && typeof active.blur === "function") {
-            active.blur();
-        }
-        // 3) abre o diálogo no próximo frame (garante que aria-hidden não pega elemento focado)
+        (document.activeElement as HTMLElement | null)?.blur?.();
         requestAnimationFrame(() => {
             setConfirmId(id);
             setConfirmLabel(label);
@@ -95,10 +89,16 @@ export function CustomerPlanList({ pagination, filters }) {
 
     const doDelete = () => {
         if (!confirmId) return;
+        setDeleting(true);
         router.delete(route("admin.customer-plans.destroy", { customerPlan: confirmId }), {
             preserveState: true,
             preserveScroll: true,
-            onFinish: () => setConfirmOpen(false),
+            onFinish: () => {
+                setDeleting(false);
+                setConfirmOpen(false);
+                setConfirmId(null);
+                setConfirmLabel("");
+            },
         });
     };
 
@@ -189,10 +189,8 @@ export function CustomerPlanList({ pagination, filters }) {
                                                             <DropdownMenuItem
                                                                 onSelect={(e) => {
                                                                     e.preventDefault();
-                                                                    setMenuOpenId(null); // fecha menu antes
-                                                                    // desfoca o trigger
-                                                                    const active = document.activeElement as HTMLElement | null;
-                                                                    active?.blur?.();
+                                                                    setMenuOpenId(null);
+                                                                    (document.activeElement as HTMLElement | null)?.blur?.();
                                                                     router.post(
                                                                         route("admin.customer-plans.activate", { customerPlan: cp.id }),
                                                                         {},
@@ -209,8 +207,7 @@ export function CustomerPlanList({ pagination, filters }) {
                                                             onSelect={(e) => {
                                                                 e.preventDefault();
                                                                 setMenuOpenId(null);
-                                                                const active = document.activeElement as HTMLElement | null;
-                                                                active?.blur?.();
+                                                                (document.activeElement as HTMLElement | null)?.blur?.();
                                                                 router.visit(route("admin.deposits.create", { cp: cp.id }));
                                                             }}
                                                         >
@@ -241,15 +238,17 @@ export function CustomerPlanList({ pagination, filters }) {
             </div>
 
             {/* AlertDialog controlado */}
-            <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-                <AlertDialogContent
-                    // Garante que o foco vá para dentro do dialog e não gere o warning
-                    onOpenAutoFocus={(e) => {
-                        e.preventDefault();
-                        // foca o botão "Cancelar" para evitar foco em elemento "aria-hidden"
-                        cancelBtnRef.current?.focus();
-                    }}
-                >
+            <AlertDialog
+                open={confirmOpen}
+                onOpenChange={(o) => {
+                    setConfirmOpen(o);
+                    if (!o) {
+                        setConfirmId(null);
+                        setConfirmLabel("");
+                    }
+                }}
+            >
+                <AlertDialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Confirmar remoção</AlertDialogTitle>
                         <AlertDialogDescription>
@@ -257,11 +256,9 @@ export function CustomerPlanList({ pagination, filters }) {
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel ref={cancelBtnRef} onClick={() => setConfirmOpen(false)}>
-                            Cancelar
-                        </AlertDialogCancel>
-                        <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={doDelete}>
-                            Remover
+                        <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction className="bg-red-600 text-white hover:bg-red-700" onClick={doDelete} disabled={deleting}>
+                            {deleting ? "Removendo..." : "Remover"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

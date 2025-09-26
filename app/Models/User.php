@@ -76,6 +76,7 @@ class User extends Authenticatable implements Auditable
     use Filterable;
     use HasFactory;
     use Notifiable;
+    use Notifiable;
     use \OwenIt\Auditing\Auditable;
 
     protected $fillable = [

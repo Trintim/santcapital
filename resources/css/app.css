@@ -102,24 +102,6 @@
     /*--sidebar-ring: oklch(0.87 0 0);*/
 }
 
-/*!* sem dark mode *!*/
-
-/*!* ADMIN = LARANJA (override só do que impacta a sidebar/accent) *!*/
-/*!*.role-admin {*!*/
-/*!*    --sidebar: oklch(0.96 0.06 70); !* fundo laranja claro *!*!*/
-/*!*    --sidebar-foreground: oklch(0.22 0.06 70); !* texto na sidebar *!*!*/
-/*    --sidebar-accent: oklch(0.88 0.12 70); !* hover/ativo *!*/
-/*    --sidebar-accent-foreground: oklch(0.16 0.06 70);*/
-/*    --sidebar-border: oklch(0.90 0.04 70);*/
-/*    --sidebar-ring: oklch(0.86 0.03 70);*/
-
-/*    !* (Opcional) propagar ação/acento para cards/botões primários *!*/
-/*    --primary: oklch(0.72 0.14 70);*/
-/*    --primary-foreground: oklch(0.985 0 0);*/
-/*    --accent: oklch(0.95 0.04 70);*/
-/*    --accent-foreground: oklch(0.20 0.06 70);*/
-/*}*/
-
 @layer base {
     * {
         @apply border-border;

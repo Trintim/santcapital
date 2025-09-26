@@ -2,7 +2,7 @@ import { NavMain } from "@/components/nav-main";
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { type NavItem } from "@/types";
 import { Link } from "@inertiajs/react";
-import { HandCoinsIcon, HomeIcon, TagIcon, UserPenIcon, UserRoundCheckIcon, UsersIcon } from "lucide-react";
+import { ChartCandlestickIcon, HandCoinsIcon, HomeIcon, TagIcon, UserPenIcon, UserRoundCheckIcon, UsersIcon } from "lucide-react";
 import AppLogo from "./app-logo";
 
 const mainNavItems: NavItem[] = [
@@ -10,6 +10,11 @@ const mainNavItems: NavItem[] = [
         title: "Dashboard",
         href: "/admin/dashboard",
         icon: HomeIcon,
+    },
+    {
+        title: "Rendimentos Mensais",
+        href: "/admin/rendimentos-mensais",
+        icon: ChartCandlestickIcon,
     },
     {
         title: "Funcionários",

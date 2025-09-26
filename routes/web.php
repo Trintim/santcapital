@@ -33,9 +33,15 @@ Route::middleware(['auth', 'role:admin'])
             });
 
         // Monthly yields
-        Route::get('monthly-yields', [MonthlyYieldController::class, 'index'])->name('monthly-yields.index');
-        Route::post('monthly-yields', [MonthlyYieldController::class, 'store'])->name('monthly-yields.store');
-        Route::post('monthly-yields/apply', [MonthlyYieldController::class, 'apply'])->name('monthly-yields.apply');
+        Route::prefix('rendimentos-mensais')
+            ->name('monthly-yields.')
+            ->group(function () {
+                Route::get('/', [MonthlyYieldController::class, 'index'])->name('index');
+                Route::post('/', [MonthlyYieldController::class, 'store'])->name('store');
+                Route::post('apply', [MonthlyYieldController::class, 'apply'])->name('apply');
+                Route::delete('{monthlyYield}', [MonthlyYieldController::class, 'destroy'])
+                    ->name('destroy');
+            });
 
         // region Employees
         Route::prefix('funcionarios')
@@ -60,34 +66,31 @@ Route::middleware(['auth', 'role:admin'])
                 Route::post('/', [Admin\CustomerController::class, 'store'])->name('store');
                 Route::get('{customer}/edit', [Admin\CustomerController::class, 'edit'])->name('edit');
                 Route::put('{customer}', [Admin\CustomerController::class, 'update'])->name('update');
-                //                Route::patch('{customer}/toggle', [Admin\CustomerController::class, 'toggleActive'])->name('toggle-active');
+                Route::patch('{customer}/toggle', [Admin\CustomerController::class, 'toggleActive'])
+                    ->name('toggle-active');
                 Route::delete('{customer}', [Admin\CustomerController::class, 'destroy'])->name('destroy');
             });
         // endregion
 
         // region Customer Plans
-        Route::prefix('planos-cliente')
-            ->name('customer-plans.')
-            ->group(function () {
-                Route::get('/', [Admin\CustomerPlanController::class, 'index'])->name('index');
-                Route::get('create', [Admin\CustomerPlanController::class, 'create'])->name('create');
-                Route::post('/', [Admin\CustomerPlanController::class, 'store'])->name('store');
-                Route::post('{customerPlan}/activate', [Admin\CustomerPlanController::class, 'activate'])->name('activate');
-                Route::delete('customer-plans/{customerPlan}', [Admin\CustomerPlanController::class, 'destroy'])->name('destroy');
-            });
+        Route::prefix('planos-cliente')->name('customer-plans.')->group(function () {
+            Route::get('/', [Admin\CustomerPlanController::class, 'index'])->name('index');
+            Route::get('create', [Admin\CustomerPlanController::class, 'create'])->name('create');
+            Route::post('/', [Admin\CustomerPlanController::class, 'store'])->name('store');
+            Route::post('{customerPlan}/activate', [Admin\CustomerPlanController::class, 'activate'])->name('activate'); // PATCH
+            Route::delete('{customerPlan}', [Admin\CustomerPlanController::class, 'destroy'])->name('destroy'); // caminho corrigido
+        });
         // endregion
 
         // region Deposits
-        Route::prefix('depositos')
-            ->name('deposits.')
-            ->group(function () {
-                Route::get('/', [Admin\DepositController::class, 'index'])->name('index');
-                Route::get('/create', [Admin\DepositController::class, 'create'])->name('create');
-                Route::post('/', [Admin\DepositController::class, 'store'])->name('store');
-                Route::post('{transaction}/approve', [Admin\DepositController::class, 'approve'])->name('approve');
-                Route::post('{transaction}/reject', [Admin\DepositController::class, 'reject'])->name('reject');
-                Route::delete('deposits/{transaction}', [Admin\DepositController::class, 'destroy'])->name('destroy'); // remove aporte (não aprovado)
-            });
+        Route::prefix('depositos')->name('deposits.')->group(function () {
+            Route::get('/', [Admin\DepositController::class, 'index'])->name('index');
+            Route::get('create', [Admin\DepositController::class, 'create'])->name('create');
+            Route::post('/', [Admin\DepositController::class, 'store'])->name('store');
+            Route::post('{transaction}/approve', [Admin\DepositController::class, 'approve'])->name('approve'); // PATCH
+            Route::post('{transaction}/reject', [Admin\DepositController::class, 'reject'])->name('reject');   // PATCH
+            Route::delete('{transaction}', [Admin\DepositController::class, 'destroy'])->name('destroy'); // caminho corrigido
+        });
     });
 
 Route::middleware(['auth', 'role:admin,employee'])
@@ -103,7 +106,7 @@ Route::middleware(['auth', 'role:customer'])
     ->prefix('customer')
     ->name('customer.')
     ->group(function () {
-        Route::get('dashboard', fn () => Inertia::render('customer/dashboard'))
+        Route::get('dashboard', fn () => Inertia::render('Customer/Dashboard/Index'))
             ->name('dashboard');
 
         // Ex.: lista de aportes do cliente

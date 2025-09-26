@@ -12,6 +12,7 @@ use App\Http\Requests\Admin\Employee\UpdateEmployeeRequest;
 use App\Http\Resources\EmployeeResource;
 use App\Models\Role;
 use App\Models\User;
+use App\Notifications\WelcomeEmployeeNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -32,7 +33,7 @@ class EmployeeController extends Controller
         $employees = EmployeeResource::collection(
             User::query()
                 ->select(['id', 'name', 'email', 'phone', 'document', 'is_active'])
-                ->with(['customerAdditionalInformation'])
+                ->with(['employeeAdditionalInformation'])
                 ->role(RoleEnum::Employee) // @phpstan-ignore-line
                 ->filters([
                     'name' => $search,
@@ -67,7 +68,7 @@ class EmployeeController extends Controller
 
         try {
             DB::transaction(static function () use ($validated, $password) {
-                $user = User::create([
+                $user = User::query()->create([
                     'name'      => Arr::get($validated, 'name'),
                     'email'     => Arr::get($validated, 'email'),
                     'phone'     => Arr::get($validated, 'phone'),
@@ -88,6 +89,10 @@ class EmployeeController extends Controller
                 if (filled(Arr::get($validated, 'additional'))) {
                     $user->employeeAdditionalInformation()->create(Arr::get($validated, 'additional'));
                 }
+
+                DB::afterCommit(static function () use ($user, $password) {
+                    $user->notify(new WelcomeEmployeeNotification(password: $password));
+                });
             });
 
             return to_route('admin.employees.index')->with('success', 'Funcionario criado com sucesso.');
@@ -154,6 +159,12 @@ class EmployeeController extends Controller
 
     public function destroy(User $employee): RedirectResponse
     {
+        // Desanexa papeis para não violar FK em role_user
+        $employee->roles()->detach();
+
+        // Se existir relação extra de employee (ex.: additional info):
+        $employee->employeeAdditionalInformation()?->delete();
+
         $employee->delete();
 
         return to_route('admin.employees.index')->with('success', 'Funcionario excluido.');

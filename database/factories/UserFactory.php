@@ -15,9 +15,8 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
+    protected $model = User::class;
+
     protected static ?string $password;
 
     /**
@@ -34,7 +33,7 @@ class UserFactory extends Factory
             'password'          => static::$password ??= Hash::make('password'),
             'remember_token'    => Str::random(10),
             'is_active'         => fake()->boolean(80),
-            'phone'             => fake()->unique()->numerify('55###########'),
+            'phone'             => fake()->unique()->numerify('## # ########'),
             'document'          => fake()->unique()->numerify('###########'),
             'birthdate'         => fake()->dateTimeBetween('-70 years', '-18 years')->format('Y-m-d'),
             'pix_key'           => fake()->unique()->email(),

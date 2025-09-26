@@ -37,13 +37,13 @@ class StoreCustomerRequest extends FormRequest
             'is_active' => ['sometimes', 'boolean'],
 
             // additional_employee_information
-            'additional'                => ['nullable', 'array'],
-            'additional.bank_name'      => ['nullable', 'string', 'max:255'],
-            'additional.bank_code'      => ['nullable', 'string', 'max:255'],
-            'additional.agency_number'  => ['nullable', 'string', 'max:255'],
-            'additional.account_number' => ['nullable', 'string', 'max:255'],
-
-            'send_welcome' => ['sometimes', 'boolean'],
+            'additional'                        => ['nullable', 'array'],
+            'additional.beneficiary_name'       => ['nullable', 'string', 'max:255'],
+            'additional.beneficiary_document'   => ['nullable', 'string', 'max:255'],
+            'additional.beneficiary_phone'      => ['nullable', 'string', 'max:255'],
+            'additional.beneficiary_2_name'     => ['nullable', 'string', 'max:255'],
+            'additional.beneficiary_2_document' => ['nullable', 'string', 'max:255'],
+            'additional.beneficiary_2_phone'    => ['nullable', 'string', 'max:255'],
         ];
     }
 }

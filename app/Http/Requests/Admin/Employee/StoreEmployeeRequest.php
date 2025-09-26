@@ -30,7 +30,6 @@ class StoreEmployeeRequest extends FormRequest
             // users
             'name'      => ['required', 'string', 'max:255'],
             'email'     => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password'  => ['nullable', 'string', 'min:8'],
             'phone'     => ['nullable', 'string', 'size:11', 'unique:users,phone'],
             'document'  => ['nullable', 'string', 'size:14', 'unique:users,document'],
             'birthdate' => ['nullable', 'date'],
@@ -43,8 +42,6 @@ class StoreEmployeeRequest extends FormRequest
             'additional.bank_code'      => ['nullable', 'string', 'max:255'],
             'additional.agency_number'  => ['nullable', 'string', 'max:255'],
             'additional.account_number' => ['nullable', 'string', 'max:255'],
-
-            'send_welcome' => ['sometimes', 'boolean'],
         ];
     }
 }

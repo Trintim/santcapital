@@ -1,4 +1,15 @@
 import Paginate from "@/components/Pagination/Index";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -12,10 +23,12 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useFilter } from "@/hooks/useFilter";
 import { useSort } from "@/hooks/useSort";
+import { formatCpfCnpj, formatPhoneBr } from "@/lib/utils";
 import { EmployeeProps } from "@/pages/Admin/Employee/types";
 import { filterQueryParams } from "@/utils";
 import { router, useForm } from "@inertiajs/react";
-import { MoreHorizontal, PlusIcon, Search } from "lucide-react";
+import { MoreHorizontal, PlusIcon, Search, Trash2 } from "lucide-react";
+import { useRef, useState } from "react";
 import { route } from "ziggy-js";
 
 export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
@@ -37,9 +50,7 @@ export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
 
     const handlePerPage = (perPage: number) => {
         const updatedData = { ...data, "per-page": perPage };
-
         setData(updatedData);
-
         router.get(route("admin.employees.index"), filterQueryParams(updatedData), {
             preserveState: true,
             preserveScroll: true,
@@ -48,9 +59,7 @@ export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
 
     const handleOnSort = (key: string) => {
         const newSort = handleSort(key);
-
         const query = { ...data, ...newSort };
-
         router.get(route("admin.employees.index"), filterQueryParams(query), {
             preserveState: true,
             preserveScroll: true,
@@ -58,6 +67,37 @@ export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
     };
 
     const hasEmployees = pagination.data.length > 0;
+
+    // ===== Dropdown controlado por linha (fecha antes do dialog)
+    const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
+
+    // ===== AlertDialog CONTROLADO + fix de foco
+    const [openDelete, setOpenDelete] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+    const [target, setTarget] = useState<{ id: number; name: string } | null>(null);
+    const cancelBtnRef = useRef<HTMLButtonElement | null>(null);
+
+    const askDelete = (id: number, name: string) => {
+        setMenuOpenId(null);
+        (document.activeElement as HTMLElement | null)?.blur?.();
+        requestAnimationFrame(() => {
+            setTarget({ id, name });
+            setOpenDelete(true);
+        });
+    };
+
+    const confirmDelete = () => {
+        if (!target) return;
+        setDeleting(true);
+        router.delete(route("admin.employees.destroy", { employee: target.id }), {
+            preserveScroll: true,
+            onFinish: () => {
+                setDeleting(false);
+                setOpenDelete(false);
+                setTarget(null);
+            },
+        });
+    };
 
     return (
         <div className="rounded-xl bg-accent px-3 pt-4">
@@ -75,7 +115,7 @@ export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
                         className="w-full sm:max-w-sm"
                     />
 
-                    <Button type="button" size={"sm"} className="cursor-pointer" onClick={() => router.visit(route("admin.employees.create"))}>
+                    <Button type="button" size="sm" className="cursor-pointer" onClick={() => router.visit(route("admin.employees.create"))}>
                         <span className="text-xs">Novo Funcionário</span>
                         <PlusIcon className="size-4" />
                     </Button>
@@ -111,43 +151,75 @@ export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                pagination.data.map((employee, index) => (
-                                    <TableRow className={"hover:!bg-secondary/10"} key={String(employee.id)}>
-                                        <TableCell>{index + 1}</TableCell>
-                                        <TableCell className={"max-w-32 truncate"}>{employee.name}</TableCell>
-                                        <TableCell className={"max-w-36 truncate"}>{employee.email}</TableCell>
-                                        <TableCell>{employee.phone}</TableCell>
-                                        <TableCell>{employee.document}</TableCell>
-                                        <TableCell>{employee.is_active}</TableCell>
+                                pagination.data.map((employee, index) => {
+                                    const isMenuOpen = menuOpenId === employee.id;
 
-                                        <TableCell className="text-right">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" className="h-8 w-8 p-0">
-                                                        <span className="sr-only">Abrir menu</span>
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                                                    <DropdownMenuItem onClick={() => navigator.clipboard.writeText(String(employee.id))}>
-                                                        Copiar ID
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem
-                                                        onClick={() => router.visit(route("admin.employees.edit", { employee: employee.id }))}
-                                                    >
-                                                        Editar
-                                                    </DropdownMenuItem>
-                                                    {/* Exemplo extra:
-                        <DropdownMenuItem onClick={() => router.post(`/admin/employees/${id}/toggle-status`)}>
-                          Ativar/Desativar
-                        </DropdownMenuItem> */}
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
+                                    return (
+                                        <TableRow className="hover:!bg-secondary/10" key={String(employee.id)}>
+                                            <TableCell>{index + 1}</TableCell>
+                                            <TableCell className="max-w-32 truncate">{employee.name}</TableCell>
+                                            <TableCell className="max-w-36 truncate">{employee.email}</TableCell>
+                                            <TableCell>{formatPhoneBr(employee.phone || "")}</TableCell>
+                                            <TableCell>{formatCpfCnpj(employee.document || "")}</TableCell>
+                                            <TableCell>
+                                                {employee.is_active ? (
+                                                    <Badge variant="default">Ativo</Badge>
+                                                ) : (
+                                                    <Badge variant="destructive">Inativo</Badge>
+                                                )}
+                                            </TableCell>
+
+                                            <TableCell className="text-right">
+                                                <DropdownMenu open={isMenuOpen} onOpenChange={(open) => setMenuOpenId(open ? employee.id : null)}>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" className="h-8 w-8 p-0" aria-label="Abrir menu">
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                                                        <DropdownMenuItem
+                                                            onSelect={(e) => {
+                                                                e.preventDefault();
+                                                                setMenuOpenId(null);
+                                                                (document.activeElement as HTMLElement | null)?.blur?.();
+
+                                                                router.patch(
+                                                                    route("admin.employees.toggle-active", { employee: employee.id }),
+                                                                    {},
+                                                                    { preserveState: true, preserveScroll: true },
+                                                                );
+                                                            }}
+                                                        >
+                                                            {employee.is_active ? "Desativar" : "Ativar"}
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            onSelect={(e) => {
+                                                                e.preventDefault();
+                                                                setMenuOpenId(null);
+                                                                (document.activeElement as HTMLElement | null)?.blur?.();
+                                                                router.visit(route("admin.employees.edit", { employee: employee.id }));
+                                                            }}
+                                                        >
+                                                            Editar
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem
+                                                            className="text-destructive focus:text-destructive"
+                                                            onSelect={(e) => {
+                                                                e.preventDefault();
+                                                                askDelete(employee.id, employee.name);
+                                                            }}
+                                                        >
+                                                            <Trash2 className="mr-2 h-4 w-4" />
+                                                            Excluir
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })
                             )}
                         </TableBody>
                     </Table>
@@ -155,6 +227,43 @@ export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
             </div>
 
             <Paginate meta={pagination?.meta} perPage={data["per-page"]} setPerPage={handlePerPage} />
+
+            {/* Modal de confirmação (controlado) */}
+            <AlertDialog
+                open={openDelete}
+                onOpenChange={(o) => {
+                    setOpenDelete(o);
+                    if (!o) setTarget(null);
+                }}
+            >
+                <AlertDialogContent
+                    onOpenAutoFocus={(e) => {
+                        e.preventDefault();
+                        // opcional: focar o botão cancelar
+                        cancelBtnRef.current?.focus();
+                    }}
+                >
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Excluir funcionário?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Esta ação não pode ser desfeita. O funcionário <span className="font-medium">{target?.name}</span> será removido
+                            permanentemente.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel ref={cancelBtnRef} disabled={deleting}>
+                            Cancelar
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmDelete}
+                            disabled={deleting}
+                            className="bg-destructive hover:bg-destructive/90 focus:ring-destructive"
+                        >
+                            {deleting ? "Removendo..." : "Sim, excluir"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

@@ -39,6 +39,8 @@ class AuthenticatedSessionController extends Controller
 
         $role = $user?->roles->first()?->name;
 
+//        dd($user);/
+
         if (filled($role)) {
             $redirectRoute = $role->routeByRole();
 

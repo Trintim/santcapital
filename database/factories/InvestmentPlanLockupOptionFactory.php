@@ -19,7 +19,8 @@ class InvestmentPlanLockupOptionFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'lockup_days' => fake()->randomElement([90, 180, 360, 720]),
+            'is_default'  => false,
         ];
     }
 }

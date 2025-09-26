@@ -9,8 +9,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Client\IndexRequest;
 use App\Http\Requests\Admin\Client\StoreCustomerRequest;
 use App\Http\Requests\Admin\Client\UpdateCustomerRequest;
+use App\Models\CustomerPlan;
+use App\Models\MoneyTransaction;
 use App\Models\Role;
 use App\Models\User;
+use App\Notifications\WelcomeCustomerNotification;
 use App\Resources\Admin\ClientResource;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Arr;
@@ -90,6 +93,10 @@ class CustomerController extends Controller
                 if (filled(Arr::get($validated, 'additional'))) {
                     $user->customerAdditionalInformation()->create(Arr::get($validated, 'additional'));
                 }
+
+                DB::afterCommit(static function () use ($user, $password) {
+                    $user->notify(new WelcomeCustomerNotification(password: $password));
+                });
             });
 
             return to_route('admin.customers.index')->with('success', 'Cliente criado com sucesso');
@@ -142,8 +149,55 @@ class CustomerController extends Controller
 
     public function destroy(User $customer): RedirectResponse
     {
-        $customer->delete();
+        try {
+            \DB::transaction(function () use ($customer) {
+                // Bloqueia se houver transações aprovadas
+                $hasApproved = MoneyTransaction::query()
+                    ->whereHas('customerPlan', fn ($q) => $q->where('user_id', $customer->id))
+                    ->where('status', MoneyTransaction::STATUS_APPROVED)
+                    ->exists();
 
-        return to_route('admin.customers.index')->with('success', 'Cliente excluído com sucesso');
+                if ($hasApproved) {
+                    throw new \RuntimeException('Não é possível excluir: existem transações aprovadas para este cliente.');
+                }
+
+                // Remove transações pendentes/rejeitadas (se existirem)
+                MoneyTransaction::query()
+                    ->whereHas('customerPlan', fn ($q) => $q->where('user_id', $customer->id))
+                    ->delete();
+
+                // Remove vínculos de planos
+                CustomerPlan::query()
+                    ->where('user_id', $customer->id)
+                    ->delete();
+
+                // Infos adicionais (clientes)
+                $customer->customerAdditionalInformation()?->delete();
+
+                // Detach das roles para não violar o FK do pivot
+                $customer->roles()->detach();
+
+                // Por fim, o usuário
+                $customer->delete();
+            });
+
+            return to_route('admin.customers.index')->with('success', 'Cliente excluído com sucesso.');
+        } catch (\RuntimeException $e) {
+            return back()->withErrors(['customer' => $e->getMessage()]);
+        } catch (Throwable $e) {
+            report($e);
+
+            return back()->withErrors(['customer' => 'Erro ao excluir cliente.']);
+        }
+    }
+
+    public function toggleActive(User $customer): RedirectResponse
+    {
+        $customer->update(['is_active' => ! $customer->is_active]);
+
+        return back()->with(
+            'success',
+            $customer->is_active ? 'Cliente ativado.' : 'Cliente desativado.'
+        );
     }
 }

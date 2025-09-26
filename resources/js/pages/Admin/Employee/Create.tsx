@@ -6,18 +6,17 @@ import { Label } from "@/components/ui/label";
 import AppLayout from "@/layouts/app-layout";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { FormEvent } from "react";
+import { toast } from "sonner";
 
 export default function Create() {
     const { data, setData, post, processing, errors } = useForm({
-        // users
         name: "",
         email: "",
-        password: "",
         phone: "",
         document: "",
         birthdate: "",
         pix_key: "",
-        is_active: true,
+        is_active: true as boolean,
         additional: {
             bank_name: "",
             bank_code: "",
@@ -28,7 +27,14 @@ export default function Create() {
 
     function submit(e: FormEvent) {
         e.preventDefault();
-        post(route("admin.employees.store"));
+        post(route("admin.employees.store"), {
+            onSuccess: () => {
+                toast.success("Funcionário criado com sucesso.");
+            },
+            onError: () => {
+                toast.error("Erro ao criar funcionário. Verifique os campos.");
+            },
+        });
     }
 
     return (
@@ -50,16 +56,6 @@ export default function Create() {
                             <Label htmlFor="email">E-mail</Label>
                             <Input id="email" value={data.email} onChange={(e) => setData("email", e.target.value)} />
                             {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
-                        </div>
-
-                        <div>
-                            <Label htmlFor="password">Senha (opcional)</Label>
-                            <Input id="password" type="password" value={data.password} onChange={(e) => setData("password", e.target.value)} />
-                            {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Checkbox id="send_welcome" checked={data.send_welcome} onCheckedChange={(c) => setData("send_welcome", Boolean(c))} />
-                            <Label htmlFor="send_welcome">Enviar e-mail de boas-vindas</Label>
                         </div>
 
                         <div>

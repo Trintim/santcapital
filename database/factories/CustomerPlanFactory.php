@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace Database\Factories;
 
+use App\Models\CustomerPlan;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -11,15 +12,17 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class CustomerPlanFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    protected $model = CustomerPlan::class;
+
     public function definition(): array
     {
+        $status      = fake()->randomElement(['pre_active', 'active']);
+        $activatedOn = $status === 'active' ? now()->subDays(rand(10, 300))->toDateString() : null;
+
         return [
-            //
+            'chosen_lockup_days' => fake()->randomElement([null, 90, 180, 360]),
+            'status'             => $status,
+            'activated_on'       => $activatedOn,
         ];
     }
 }
