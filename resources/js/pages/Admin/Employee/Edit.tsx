@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import AppLayout from "@/layouts/app-layout";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { FormEvent } from "react";
+import { toast } from "sonner";
 
 export default function Edit({ employee }) {
     const { data, setData, put, processing, errors } = useForm({
@@ -28,7 +29,14 @@ export default function Edit({ employee }) {
 
     function submit(e: FormEvent) {
         e.preventDefault();
-        put(route("admin.employees.update", { employee: employee.id }));
+        put(route("admin.employees.update", { employee: employee.id }), {
+            onSuccess: () => {
+                toast.success("Funcionário atualizado com sucesso.");
+            },
+            onError: () => {
+                toast.error("Erro ao atualizar funcionário. Verifique os campos.");
+            },
+        });
     }
 
     return (

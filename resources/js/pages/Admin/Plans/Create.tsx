@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import AppLayout from "@/layouts/app-layout";
 import { Head, Link, useForm } from "@inertiajs/react";
+import { toast } from "sonner";
 
 export default function Create() {
     const { data, setData, post, processing, errors } = useForm({
@@ -25,7 +26,14 @@ export default function Create() {
 
     function submit(e: any) {
         e.preventDefault();
-        post(route("admin.plans.store"));
+        post(route("admin.plans.store"), {
+            onSuccess: () => {
+                toast.success("Plano criado com sucesso!");
+            },
+            onError: () => {
+                toast.error("Erro ao criar o plano.");
+            },
+        });
     }
 
     return (

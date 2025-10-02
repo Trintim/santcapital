@@ -1,0 +1,191 @@
+import Paginate from "@/components/Pagination/Index";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useFilter } from "@/hooks/useFilter";
+import { useSort } from "@/hooks/useSort";
+import { filterQueryParams } from "@/utils";
+import { router, useForm } from "@inertiajs/react";
+import { MoreHorizontal, PlusIcon, Search } from "lucide-react";
+import { route } from "ziggy-js";
+
+export function DepositList({ pagination, filters }) {
+    const { data, setData } = useForm({
+        search: filters.search || "",
+        "per-page": filters["per-page"] || 15,
+    });
+
+    const { handleDebounceFilter } = useFilter({
+        path: route("employee.deposits.index"),
+        initialData: data,
+        onDataChange: setData,
+    });
+
+    const { handleSort, getSortDirection } = useSort({
+        sortBy: filters["sort-by"] || "name",
+        sortDirection: filters.direction || "asc",
+    });
+
+    const handlePerPage = (perPage: number) => {
+        const updatedData = { ...data, "per-page": perPage };
+
+        setData(updatedData);
+
+        router.get(route("employee.deposits.index"), filterQueryParams(updatedData), {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleOnSort = (key: string) => {
+        const newSort = handleSort(key);
+
+        const query = { ...data, ...newSort };
+
+        router.get(route("employee.deposits.index"), filterQueryParams(query), {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    function approve(id: number) {
+        router.post(route("employee.deposits.approve", { transaction: id }));
+    }
+
+    function reject(id: number) {
+        router.post(route("employee.deposits.reject", { transaction: id }));
+    }
+
+    const hasDeposits = pagination.data.length > 0;
+
+    return (
+        <div className="rounded-xl bg-accent px-3 pt-4">
+            <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+                <h1 className="text-lg font-bold">Aportes</h1>
+
+                <div className="flex items-center gap-2">
+                    <Input
+                        leftIcon={<Search className="size-4" />}
+                        name="search"
+                        placeholder="Buscar por nome, email, telefone ou documento"
+                        id="search"
+                        value={data.search}
+                        onChange={handleDebounceFilter}
+                        className="w-full sm:max-w-sm"
+                    />
+
+                    <Button type="button" size={"sm"} className="cursor-pointer" onClick={() => router.visit(route("employee.deposits.create"))}>
+                        <span className="text-xs">Novo aporte</span>
+                        <PlusIcon className="size-4" />
+                    </Button>
+                </div>
+            </div>
+
+            <div className="mt-4">
+                <div className="overflow-hidden">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>ID</TableHead>
+                                <TableHead sortable sortBy={"name"} sortDirection={getSortDirection("name")} onSort={handleOnSort}>
+                                    Cliente
+                                </TableHead>
+                                <TableHead sortable sortBy={"email"} sortDirection={getSortDirection("email")} onSort={handleOnSort}>
+                                    Plano
+                                </TableHead>
+                                <TableHead>Valor</TableHead>
+                                <TableHead>Data</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>
+                                    <span className="sr-only">Ações</span>
+                                </TableHead>
+                            </TableRow>
+                        </TableHeader>
+
+                        <TableBody>
+                            {!hasDeposits ? (
+                                <TableRow>
+                                    <TableCell colSpan={7} className="h-24 text-center text-sm text-muted-foreground">
+                                        Nenhum aporte encontrado.
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                pagination.data.map((t, index) => (
+                                    <TableRow className={"hover:!bg-secondary/10"} key={String(t.id)}>
+                                        <TableCell>{index + 1}</TableCell>
+                                        <TableCell className={"max-w-32 truncate"}>
+                                            <div className="flex flex-col">
+                                                {t.customer_plan?.customer?.name}
+                                                <span className="text-xs text-muted-foreground"> ({t.customer_plan?.customer?.email})</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className={"max-w-36 truncate"}>{t.customer_plan?.plan?.name}</TableCell>
+                                        <TableCell className={"max-w-36 truncate"}>
+                                            R$ {Number(t.amount).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                                        </TableCell>
+
+                                        <TableCell>
+                                            {new Date(t.effective_date).toLocaleDateString("pt-BR", {
+                                                day: "2-digit",
+                                                month: "2-digit",
+                                                year: "numeric",
+                                            })}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge
+                                                className={
+                                                    t.status === "approved"
+                                                        ? "bg-emerald-600 hover:bg-emerald-600"
+                                                        : t.status === "rejected"
+                                                          ? "bg-red-600 hover:bg-red-600"
+                                                          : "bg-yellow-500 hover:bg-yellow-500"
+                                                }
+                                            >
+                                                {t.status === "approved" ? "Aprovado" : t.status === "rejected" ? "Rejeitado" : "Pendente"}
+                                            </Badge>
+                                        </TableCell>
+
+                                        <TableCell className="text-right">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                                        <span className="sr-only">Abrir menu</span>
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                                                    <DropdownMenuSeparator />
+                                                    {t.status === "pending" && (
+                                                        <>
+                                                            <DropdownMenuItem onClick={() => approve(t.id)}>Aprovar</DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => reject(t.id)}>Rejeitar</DropdownMenuItem>
+                                                        </>
+                                                    )}
+                                                    {!(t.status === "pending") && (
+                                                        <DropdownMenuItem disabled>Nenhuma ação disponível</DropdownMenuItem>
+                                                    )}
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+            </div>
+
+            <Paginate meta={pagination?.meta} perPage={data["per-page"]} setPerPage={handlePerPage} />
+        </div>
+    );
+}

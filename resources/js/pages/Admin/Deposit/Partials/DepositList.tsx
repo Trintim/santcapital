@@ -60,17 +60,42 @@ export function DepositList({ pagination, filters }) {
     };
 
     function approve(id: number) {
-        router.post(route("admin.deposits.approve", { transaction: id }));
+        router.post(
+            route("admin.deposits.approve", { transaction: id }),
+            {},
+            {
+                onSuccess: () => {
+                    toast.success("Aporte aprovado com sucesso.");
+                },
+                onError: () => {
+                    toast.error("Erro ao aprovar o aporte.");
+                },
+            },
+        );
     }
 
     function reject(id: number) {
-        router.post(route("admin.deposits.reject", { transaction: id }));
+        router.post(
+            route("admin.deposits.reject", { transaction: id }),
+            {},
+            {
+                onSuccess: () => {
+                    toast.success("Aporte rejeitado com sucesso.");
+                },
+                onError: () => {
+                    toast.error("Erro ao rejeitar o aporte.");
+                },
+            },
+        );
     }
 
     function removeTx(id: number) {
         router.delete(route("admin.deposits.destroy", { transaction: id }), {
-            onError: (errors) => {
-                toast.warning(errors.transaction);
+            onSuccess: () => {
+                toast.success("Aporte excluído com sucesso.");
+            },
+            onError: () => {
+                toast.error("Erro ao excluir o aporte.");
             },
         });
     }

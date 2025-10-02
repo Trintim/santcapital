@@ -1,14 +1,14 @@
 import { router } from "@inertiajs/react";
-import { Area, AreaChart, CartesianGrid, Line, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { route } from "ziggy-js";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type Point = {
-    key: string; // "YYYY-MM" ou "YYYY-MM-DD"
-    label: string; // já formatado do back: "dd/mm" ou "set/25"
+    key: string;
+    label: string;
     deposits: number;
     yields: number;
     withdraws: number;
@@ -28,13 +28,37 @@ const chartConfig = {
     net: { label: "Fluxo líquido", color: "var(--foreground)" },
 } satisfies ChartConfig;
 
+console.log(chartConfig);
+
 export function PerformanceChart({ series, range, dimension }: Props) {
     const onRangeChange = (r: Props["range"]) => {
         if (r === range) return;
         router.get(route("admin.dashboard"), { range: r }, { preserveState: true, preserveScroll: true });
     };
 
-    const tickFmt = (label: string) => label; // já vem pronto do backend
+    const filteredData = series.filter((item) => {
+        const date = new Date(item.label);
+        //hoje
+        const referenceDate = new Date();
+
+        let daysToSubtract = 365;
+
+        if (range === "12m") {
+            daysToSubtract = 365;
+        } else if (range === "9m") {
+            daysToSubtract = 270;
+        } else if (range === "3m") {
+            daysToSubtract = 90;
+        } else if (range === "7d") {
+            daysToSubtract = 7;
+        }
+
+        const startDate = new Date(referenceDate);
+
+        startDate.setDate(startDate.getDate() - daysToSubtract);
+
+        return date >= startDate;
+    });
 
     return (
         <Card className="pt-0">
@@ -68,51 +92,70 @@ export function PerformanceChart({ series, range, dimension }: Props) {
             </CardHeader>
 
             <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-                <ChartContainer config={chartConfig} className="aspect-auto h-[300px] w-full">
-                    <AreaChart data={series}>
-                        <defs>
-                            <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="var(--color-desktop)" stopOpacity={0.8} />
-                                <stop offset="95%" stopColor="var(--color-desktop)" stopOpacity={0.1} />
-                            </linearGradient>
-                            <linearGradient id="fillMobile" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="var(--color-mobile)" stopOpacity={0.8} />
-                                <stop offset="95%" stopColor="var(--color-mobile)" stopOpacity={0.1} />
-                            </linearGradient>
-                        </defs>
+                <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
+                    <AreaChart accessibilityLayer data={filteredData}>
+                        <CartesianGrid vertical={false} />
 
-                        <CartesianGrid vertical={false} strokeOpacity={0.15} />
-
-                        <XAxis dataKey="label" tickLine={false} axisLine={false} tickMargin={8} minTickGap={24} tickFormatter={tickFmt} />
-
-                        <YAxis width={90} tickFormatter={(v: number) => `R$ ${v.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}`} />
+                        <XAxis
+                            dataKey="label"
+                            tickLine={false}
+                            axisLine={false}
+                            tickMargin={8}
+                            minTickGap={32}
+                            tickFormatter={(value) => {
+                                const date = new Date(value);
+                                // return day = 23 Mai 2025, se nao Mai 2025 ...
+                                return dimension.mode === "day"
+                                    ? date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "2-digit" })
+                                    : date.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" });
+                            }}
+                        />
 
                         <ChartTooltip
-                            cursor={{ strokeOpacity: 0.08 }}
+                            cursor={false}
                             content={
                                 <ChartTooltipContent
-                                    labelFormatter={(label) => label}
-                                    formatter={(value, name) => {
-                                        if (typeof value === "number") {
-                                            const labelPt = chartConfig[name as keyof typeof chartConfig]?.label ?? name;
-                                            return [`R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, labelPt];
-                                        }
-                                        return [value, name];
+                                    labelFormatter={(value) => {
+                                        return new Date(value).toLocaleDateString("pt-BR", {
+                                            year: "numeric",
+                                            month: "short",
+                                            day: "numeric",
+                                        });
                                     }}
+                                    labelKey={"label"}
                                     indicator="dot"
                                 />
                             }
                         />
 
-                        {/* Áreas (preenchidas) */}
-                        <Area dataKey="deposits" type="natural" fill="url(#fillDeposits)" stroke="var(--color-deposits)" name="deposits" />
-                        <Area dataKey="yields" type="natural" fill="url(#fillYields)" stroke="var(--color-yields)" name="yields" />
-                        <Area dataKey="withdraws" type="natural" fill="url(#fillWithdraws)" stroke="var(--color-withdraws)" name="withdraws" />
+                        <defs>
+                            {/* IDs e cores alinhados ao chartConfig */}
+                            <linearGradient id="fillDeposits" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="var(--color-deposits)" stopOpacity={0.8} />
+                                <stop offset="95%" stopColor="var(--color-deposits)" stopOpacity={0.1} />
+                            </linearGradient>
+                            <linearGradient id="fillYields" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="var(--color-yields)" stopOpacity={0.8} />
+                                <stop offset="95%" stopColor="var(--color-yields)" stopOpacity={0.1} />
+                            </linearGradient>
+                            <linearGradient id="fillWithdraws" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="var(--color-withdraws)" stopOpacity={0.8} />
+                                <stop offset="95%" stopColor="var(--color-withdraws)" stopOpacity={0.1} />
+                            </linearGradient>
+                        </defs>
 
-                        {/* Linha de destaque */}
-                        <Line dataKey="net" type="monotone" stroke="var(--color-foreground)" strokeWidth={3} dot={{ r: 2.5 }} name="net" />
+                        <YAxis
+                            width={90}
+                            tickFormatter={(v: number) => `R$ ${v.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}`}
+                            tickLine={false}
+                            axisLine={false}
+                            tickMargin={8}
+                            minTickGap={16}
+                        />
 
-                        <ChartLegend content={<ChartLegendContent />} />
+                        <Area dataKey="deposits" type="natural" fill="url(#fillDeposits)" stroke="var(--color-deposits)" />
+                        <Area dataKey="yields" type="natural" fill="url(#fillYields)" stroke="var(--color-yields)" />
+                        <Area dataKey="withdraws" type="natural" fill="url(#fillWithdraws)" stroke="var(--color-withdraws)" />
                     </AreaChart>
                 </ChartContainer>
             </CardContent>

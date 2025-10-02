@@ -22,6 +22,8 @@ import {
     TooltipProvider,
     TooltipTrigger
 } from "@/components/ui/tooltip";
+import { usePage } from "@inertiajs/react";
+import type { SharedData } from "@/types";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -506,6 +508,10 @@ function SidebarMenuButton({
     const Comp = asChild ? Slot : "button";
     const { isMobile, state } = useSidebar();
 
+    const { auth } = usePage<SharedData>().props;
+
+    const { role } = auth.user;
+
     const button = (
         <Comp
             data-slot="sidebar-menu-button"
@@ -516,7 +522,8 @@ function SidebarMenuButton({
                     { variant, size }),
                 className,
                 // added shadow sm when is active
-                isActive && "!bg-white/20 !text-indigo-900 !shadow-sm"
+                isActive && role === 'admin' && "!bg-white/20 !text-indigo-900 !shadow-sm",
+                isActive && (role === 'customer' || role === 'employee') && "!bg-white/20 !text-[#fb923c] !shadow-sm"
             )}
             {...props}
         />

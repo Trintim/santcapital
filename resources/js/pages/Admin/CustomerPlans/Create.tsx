@@ -6,6 +6,7 @@ import Layout from "@/layouts/app-layout";
 import { ClientResource } from "@/types/client";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 type Plan = {
     id: number;
@@ -55,7 +56,14 @@ export default function Create({ customers, plans }: { customers: ClientResource
 
     function submit(e: React.FormEvent) {
         e.preventDefault();
-        post(route("admin.customer-plans.store"));
+        post(route("admin.customer-plans.store"), {
+            onSuccess: () => {
+                toast.success("Plano vinculado ao cliente com sucesso.");
+            },
+            onError: () => {
+                toast.error("Erro ao vincular plano ao cliente. Verifique os campos.");
+            },
+        });
     }
 
     return (

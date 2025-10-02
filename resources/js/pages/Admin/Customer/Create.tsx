@@ -8,6 +8,7 @@ import AppLayout from "@/layouts/app-layout";
 import { formatCpfCnpj, formatPhoneBr } from "@/lib/utils";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { FormEvent } from "react";
+import { toast } from "sonner";
 
 export default function Create() {
     const { data, setData, post, processing, errors } = useForm({
@@ -30,7 +31,14 @@ export default function Create() {
 
     function submit(e: FormEvent) {
         e.preventDefault();
-        post(route("admin.customers.store"));
+        post(route("admin.customers.store"), {
+            onSuccess: () => {
+                toast.success("Cliente criado com sucesso.");
+            },
+            onError: () => {
+                toast.error("Erro ao criar cliente. Verifique os campos.");
+            },
+        });
     }
 
     return (

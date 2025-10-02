@@ -10,6 +10,7 @@ use App\Models\MoneyTransaction;
 use App\Models\MonthlyYield;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Number;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -18,7 +19,7 @@ class DashboardController extends Controller
     public function __invoke(): Response
     {
         $now   = now()->toImmutable();
-        $range = request('range', '3m'); // '7d' | '3m' | '9m' | '12m'
+        $range = request('range', '12m'); // '7d' | '3m' | '9m' | '12m'
 
         // === KPIs ===
 
@@ -43,10 +44,8 @@ class DashboardController extends Controller
         $totalInvested = (float) $totals->deposits + (float) $totals->yields - (float) $totals->withdraws;
 
         $avgYield12m = MonthlyYield::query()
-            ->whereBetween('period', [
-                $now->subMonths(11)->startOfMonth()->format('Y-m'),
-                $now->format('Y-m'),
-            ])
+            ->whereDate('period', '>=', $now->subMonths(12)->startOfMonth()->toDateString())
+            ->whereDate('period', '<=', $now->endOfDay()->toDateString())
             ->avg('percent_decimal');
 
         // === Série temporal sem CTE ===
@@ -58,7 +57,7 @@ class DashboardController extends Controller
             $rows = DB::table('money_transactions as t')
                 ->selectRaw("
                     DATE(t.effective_date) as k,
-                    DATE_FORMAT(t.effective_date, '%d/%m') as label,
+                    DATE_FORMAT(t.effective_date, '%Y/%m/%d') as label,
                     COALESCE(SUM(CASE WHEN t.type = ? THEN t.amount END), 0) AS deposits,
                     COALESCE(SUM(CASE WHEN t.type = ? THEN t.amount END), 0) AS yields,
                     COALESCE(SUM(CASE WHEN t.type = ? THEN t.amount END), 0) AS withdraws
@@ -84,7 +83,6 @@ class DashboardController extends Controller
 
             $dimension = ['mode' => 'day'];
         } else {
-            // mensal: últimos 3/9/12 meses (apenas meses com movimento)
             $monthsBack = [
                 '3m'  => 3,
                 '9m'  => 9,
@@ -96,8 +94,8 @@ class DashboardController extends Controller
 
             $rows = DB::table('money_transactions as t')
                 ->selectRaw("
-                    DATE_FORMAT(t.effective_date, '%Y-%m') as k,
-                    DATE_FORMAT(t.effective_date, '%b/%y') as label,
+                    DATE_FORMAT(t.effective_date, '%Y-%m-01') as k,
+                    DATE_FORMAT(t.effective_date, '%Y-%m-01') as label,
                     COALESCE(SUM(CASE WHEN t.type = ? THEN t.amount END), 0) AS deposits,
                     COALESCE(SUM(CASE WHEN t.type = ? THEN t.amount END), 0) AS yields,
                     COALESCE(SUM(CASE WHEN t.type = ? THEN t.amount END), 0) AS withdraws
@@ -113,11 +111,9 @@ class DashboardController extends Controller
                 ->get();
 
             $series = $rows->map(function ($r) {
-                $label = Carbon::parse($r->k . '-01')->locale('pt_BR')->isoFormat('MMM/YY');
-
                 return [
                     'key'       => (string) $r->k,
-                    'label'     => mb_strtolower($label),
+                    'label'     => (string) $r->label, // YYYY/MM
                     'deposits'  => (float) $r->deposits,
                     'withdraws' => (float) $r->withdraws,
                     'yields'    => (float) $r->yields,
@@ -132,7 +128,7 @@ class DashboardController extends Controller
             'kpis' => [
                 'activeCustomers' => $activeCustomers,
                 'totalInvested'   => $totalInvested,
-                'avgYield12m'     => $avgYield12m,
+                'avgYield12m'     => Number::percentage((float) $avgYield12m * 100, 2),
             ],
             'series'    => $series,          // { key, label, deposits, yields, withdraws, net }
             'range'     => $range,           // '7d' | '3m' | '9m' | '12m'

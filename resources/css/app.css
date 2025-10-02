@@ -102,6 +102,17 @@
     /*--sidebar-ring: oklch(0.87 0 0);*/
 }
 
+.role-customer, .role-employee {
+    --sidebar: oklch(25.7% 0.09 281.288);
+    --sidebar-foreground: oklch(83.7% 0.128 66.29);
+    --sidebar-primary: oklch(25.7% 0.09 281.288);
+    --sidebar-primary-foreground: oklch(25.7% 0.09 281.288);
+    --sidebar-accent: oklch(1 0 89.876 / 0.2);
+    --sidebar-accent-foreground: oklch(75% 0.183 55.934);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.87 0 0);
+}
+
 @layer base {
     * {
         @apply border-border;

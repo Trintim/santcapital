@@ -1,3 +1,4 @@
+// resources/js/pages/Admin/Employee/Partials/EmployeeList.tsx
 import Paginate from "@/components/Pagination/Index";
 import {
     AlertDialog,
@@ -23,13 +24,13 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useFilter } from "@/hooks/useFilter";
 import { useSort } from "@/hooks/useSort";
-import { formatCpfCnpj, formatPhoneBr } from "@/lib/utils";
-import { EmployeeProps } from "@/pages/Admin/Employee/types";
 import { filterQueryParams } from "@/utils";
 import { router, useForm } from "@inertiajs/react";
-import { MoreHorizontal, PlusIcon, Search, Trash2 } from "lucide-react";
+import { CheckCircle2, MoreHorizontal, PlusIcon, Search, XCircle } from "lucide-react";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 import { route } from "ziggy-js";
+import type { EmployeeProps } from "../types";
 
 export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
     const { data, setData } = useForm({
@@ -49,9 +50,9 @@ export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
     });
 
     const handlePerPage = (perPage: number) => {
-        const updatedData = { ...data, "per-page": perPage };
-        setData(updatedData);
-        router.get(route("admin.employees.index"), filterQueryParams(updatedData), {
+        const updated = { ...data, "per-page": perPage };
+        setData(updated);
+        router.get(route("admin.employees.index"), filterQueryParams(updated), {
             preserveState: true,
             preserveScroll: true,
         });
@@ -68,35 +69,57 @@ export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
 
     const hasEmployees = pagination.data.length > 0;
 
-    // ===== Dropdown controlado por linha (fecha antes do dialog)
+    // ===== Menu por linha =====
     const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
 
-    // ===== AlertDialog CONTROLADO + fix de foco
-    const [openDelete, setOpenDelete] = useState(false);
-    const [deleting, setDeleting] = useState(false);
-    const [target, setTarget] = useState<{ id: number; name: string } | null>(null);
+    // ===== Dialog de exclusão (controlado) =====
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [confirmId, setConfirmId] = useState<number | null>(null);
+    const [confirmLabel, setConfirmLabel] = useState<string>("");
     const cancelBtnRef = useRef<HTMLButtonElement | null>(null);
 
-    const askDelete = (id: number, name: string) => {
+    const openConfirm = (id: number, label: string) => {
         setMenuOpenId(null);
         (document.activeElement as HTMLElement | null)?.blur?.();
         requestAnimationFrame(() => {
-            setTarget({ id, name });
-            setOpenDelete(true);
+            setConfirmId(id);
+            setConfirmLabel(label);
+            setConfirmOpen(true);
         });
     };
 
-    const confirmDelete = () => {
-        if (!target) return;
-        setDeleting(true);
-        router.delete(route("admin.employees.destroy", { employee: target.id }), {
+    const doDelete = () => {
+        if (!confirmId) return;
+        router.delete(route("admin.employees.destroy", { employee: confirmId }), {
+            preserveState: true,
             preserveScroll: true,
-            onFinish: () => {
-                setDeleting(false);
-                setOpenDelete(false);
-                setTarget(null);
+            onSuccess: () => {
+                toast.success("Funcionário excluído com sucesso.");
             },
+            onError: () => {
+                toast.error("Erro ao excluir funcionário.");
+            },
+            onFinish: () => setConfirmOpen(false),
         });
+    };
+
+    const toggleActive = (id: number) => {
+        setMenuOpenId(null);
+        (document.activeElement as HTMLElement | null)?.blur?.();
+        router.post(
+            route("admin.employees.toggle-active", { employee: id }),
+            {},
+            {
+                preserveState: true,
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success("Status do funcionário alterado com sucesso.");
+                },
+                onError: () => {
+                    toast.error("Erro ao alterar status do funcionário.");
+                },
+            },
+        );
     };
 
     return (
@@ -115,7 +138,7 @@ export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
                         className="w-full sm:max-w-sm"
                     />
 
-                    <Button type="button" size="sm" className="cursor-pointer" onClick={() => router.visit(route("admin.employees.create"))}>
+                    <Button type="button" size="sm" onClick={() => router.visit(route("admin.employees.create"))}>
                         <span className="text-xs">Novo Funcionário</span>
                         <PlusIcon className="size-4" />
                     </Button>
@@ -128,10 +151,10 @@ export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>ID</TableHead>
-                                <TableHead sortable sortBy={"name"} sortDirection={getSortDirection("name")} onSort={handleOnSort}>
+                                <TableHead sortable sortBy="name" sortDirection={getSortDirection("name")} onSort={handleOnSort}>
                                     Nome
                                 </TableHead>
-                                <TableHead sortable sortBy={"email"} sortDirection={getSortDirection("email")} onSort={handleOnSort}>
+                                <TableHead sortable sortBy="email" sortDirection={getSortDirection("email")} onSort={handleOnSort}>
                                     Email
                                 </TableHead>
                                 <TableHead>Telefone</TableHead>
@@ -151,26 +174,36 @@ export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                pagination.data.map((employee, index) => {
-                                    const isMenuOpen = menuOpenId === employee.id;
-
+                                pagination.data.map((emp: any, index: number) => {
+                                    const isMenuOpen = menuOpenId === emp.id;
                                     return (
-                                        <TableRow className="hover:!bg-secondary/10" key={String(employee.id)}>
+                                        <TableRow key={String(emp.id)} className="hover:!bg-secondary/10">
                                             <TableCell>{index + 1}</TableCell>
-                                            <TableCell className="max-w-32 truncate">{employee.name}</TableCell>
-                                            <TableCell className="max-w-36 truncate">{employee.email}</TableCell>
-                                            <TableCell>{formatPhoneBr(employee.phone || "")}</TableCell>
-                                            <TableCell>{formatCpfCnpj(employee.document || "")}</TableCell>
-                                            <TableCell>
-                                                {employee.is_active ? (
-                                                    <Badge variant="default">Ativo</Badge>
-                                                ) : (
-                                                    <Badge variant="destructive">Inativo</Badge>
-                                                )}
+                                            <TableCell className="max-w-32 truncate">{emp.name}</TableCell>
+                                            <TableCell className="max-w-36 truncate">{emp.email}</TableCell>
+                                            <TableCell>{emp.phone ?? "—"}</TableCell>
+                                            <TableCell>{emp.document ?? "—"}</TableCell>
+                                            <TableCell className="whitespace-nowrap">
+                                                <Badge
+                                                    variant={"default"}
+                                                    className={emp.is_active ? "bg-emerald-600 hover:bg-emerald-600" : "bg-red-600 hover:bg-red-600"}
+                                                >
+                                                    {emp.is_active ? (
+                                                        <>
+                                                            <CheckCircle2 className="size-4" />
+                                                            Ativo
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <XCircle className="size-4" />
+                                                            Inativo
+                                                        </>
+                                                    )}
+                                                </Badge>
                                             </TableCell>
 
                                             <TableCell className="text-right">
-                                                <DropdownMenu open={isMenuOpen} onOpenChange={(open) => setMenuOpenId(open ? employee.id : null)}>
+                                                <DropdownMenu open={isMenuOpen} onOpenChange={(open) => setMenuOpenId(open ? emp.id : null)}>
                                                     <DropdownMenuTrigger asChild>
                                                         <Button variant="ghost" className="h-8 w-8 p-0" aria-label="Abrir menu">
                                                             <MoreHorizontal className="h-4 w-4" />
@@ -182,37 +215,31 @@ export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
                                                             onSelect={(e) => {
                                                                 e.preventDefault();
                                                                 setMenuOpenId(null);
-                                                                (document.activeElement as HTMLElement | null)?.blur?.();
-
-                                                                router.patch(
-                                                                    route("admin.employees.toggle-active", { employee: employee.id }),
-                                                                    {},
-                                                                    { preserveState: true, preserveScroll: true },
-                                                                );
-                                                            }}
-                                                        >
-                                                            {employee.is_active ? "Desativar" : "Ativar"}
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem
-                                                            onSelect={(e) => {
-                                                                e.preventDefault();
-                                                                setMenuOpenId(null);
-                                                                (document.activeElement as HTMLElement | null)?.blur?.();
-                                                                router.visit(route("admin.employees.edit", { employee: employee.id }));
+                                                                router.visit(route("admin.employees.edit", { employee: emp.id }));
                                                             }}
                                                         >
                                                             Editar
                                                         </DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
+
                                                         <DropdownMenuItem
-                                                            className="text-destructive focus:text-destructive"
                                                             onSelect={(e) => {
                                                                 e.preventDefault();
-                                                                askDelete(employee.id, employee.name);
+                                                                toggleActive(emp.id);
                                                             }}
                                                         >
-                                                            <Trash2 className="mr-2 h-4 w-4" />
-                                                            Excluir
+                                                            {emp.is_active ? "Desativar" : "Ativar"}
+                                                        </DropdownMenuItem>
+
+                                                        <DropdownMenuSeparator />
+
+                                                        <DropdownMenuItem
+                                                            className="text-red-600 focus:text-red-600"
+                                                            onSelect={(e) => {
+                                                                e.preventDefault();
+                                                                openConfirm(emp.id, emp.name);
+                                                            }}
+                                                        >
+                                                            Remover
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
@@ -228,38 +255,24 @@ export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
 
             <Paginate meta={pagination?.meta} perPage={data["per-page"]} setPerPage={handlePerPage} />
 
-            {/* Modal de confirmação (controlado) */}
-            <AlertDialog
-                open={openDelete}
-                onOpenChange={(o) => {
-                    setOpenDelete(o);
-                    if (!o) setTarget(null);
-                }}
-            >
+            {/* Dialog de exclusão com foco seguro */}
+            <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
                 <AlertDialogContent
                     onOpenAutoFocus={(e) => {
                         e.preventDefault();
-                        // opcional: focar o botão cancelar
                         cancelBtnRef.current?.focus();
                     }}
                 >
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Excluir funcionário?</AlertDialogTitle>
+                        <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Esta ação não pode ser desfeita. O funcionário <span className="font-medium">{target?.name}</span> será removido
-                            permanentemente.
+                            Esta ação removerá o funcionário <strong>{confirmLabel}</strong>.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel ref={cancelBtnRef} disabled={deleting}>
-                            Cancelar
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={confirmDelete}
-                            disabled={deleting}
-                            className="bg-destructive hover:bg-destructive/90 focus:ring-destructive"
-                        >
-                            {deleting ? "Removendo..." : "Sim, excluir"}
+                        <AlertDialogCancel ref={cancelBtnRef}>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={doDelete}>
+                            Remover
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

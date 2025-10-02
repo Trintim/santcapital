@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import Layout from "@/layouts/app-layout";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { FormEvent, useMemo } from "react";
+import { toast } from "sonner";
 
 export default function Create({ customerPlans }) {
     const preselectedCp = (() => {
@@ -31,7 +32,14 @@ export default function Create({ customerPlans }) {
 
     function submit(e: FormEvent) {
         e.preventDefault();
-        post(route("admin.deposits.store"));
+        post(route("admin.deposits.store"), {
+            onSuccess: () => {
+                toast.success("Aporte criado com sucesso.");
+            },
+            onError: () => {
+                toast.error("Erro ao criar aporte. Verifique os campos.");
+            },
+        });
     }
 
     return (

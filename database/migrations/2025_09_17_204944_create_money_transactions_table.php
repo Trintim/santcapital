@@ -20,7 +20,7 @@ return new class () extends Migration
             $table->decimal('amount', 18, 2);
             $table->date('effective_date')->nullable();
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
-            $table->string('origin')->nullable();        // ex.: 'manual', 'system'
+            $table->string('origin')->nullable();
             $table->json('meta')->nullable();           // info extra
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();

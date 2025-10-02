@@ -15,7 +15,7 @@ class StoreCustomerPlanRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->hasRole(Role::Admin) ?? false;
+        return $this->user()?->hasAnyRole([Role::Admin, Role::Employee]) ?? false;
     }
 
     public function rules(): array

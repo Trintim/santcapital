@@ -26,7 +26,8 @@ import { useSort } from "@/hooks/useSort";
 import { filterQueryParams } from "@/utils";
 import { router, useForm } from "@inertiajs/react";
 import { Bolt, MoreHorizontal, PlusIcon, Search } from "lucide-react";
-import { useRef, useState } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { route } from "ziggy-js";
 
 export function CustomerPlanList({ pagination, filters }) {
@@ -75,7 +76,6 @@ export function CustomerPlanList({ pagination, filters }) {
     const [confirmId, setConfirmId] = useState<number | null>(null);
     const [confirmLabel, setConfirmLabel] = useState<string>("");
     const [deleting, setDeleting] = useState(false);
-    const cancelBtnRef = useRef<HTMLButtonElement | null>(null);
 
     const openConfirm = (id: number, label: string) => {
         setMenuOpenId(null);
@@ -93,6 +93,12 @@ export function CustomerPlanList({ pagination, filters }) {
         router.delete(route("admin.customer-plans.destroy", { customerPlan: confirmId }), {
             preserveState: true,
             preserveScroll: true,
+            onSuccess: () => {
+                toast.success("Plano de cliente removido com sucesso.");
+            },
+            onError: () => {
+                toast.error("Erro ao remover plano de cliente.");
+            },
             onFinish: () => {
                 setDeleting(false);
                 setConfirmOpen(false);
@@ -194,7 +200,16 @@ export function CustomerPlanList({ pagination, filters }) {
                                                                     router.post(
                                                                         route("admin.customer-plans.activate", { customerPlan: cp.id }),
                                                                         {},
-                                                                        { preserveState: true, preserveScroll: true },
+                                                                        {
+                                                                            preserveState: true,
+                                                                            preserveScroll: true,
+                                                                            onSuccess: () => {
+                                                                                toast.success("Plano de cliente ativado com sucesso.");
+                                                                            },
+                                                                            onError: () => {
+                                                                                toast.error("Erro ao ativar plano de cliente.");
+                                                                            },
+                                                                        },
                                                                     );
                                                                 }}
                                                             >

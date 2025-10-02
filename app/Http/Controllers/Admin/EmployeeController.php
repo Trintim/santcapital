@@ -13,6 +13,7 @@ use App\Http\Resources\EmployeeResource;
 use App\Models\Role;
 use App\Models\User;
 use App\Notifications\WelcomeEmployeeNotification;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -154,19 +155,35 @@ class EmployeeController extends Controller
         $employee->update(['is_active' => ! $employee->is_active]);
 
         return back()->with('success', $employee->is_active ? 'Funcionario ativado.' : 'Funcionario desativado.');
-
     }
 
     public function destroy(User $employee): RedirectResponse
     {
-        // Desanexa papeis para não violar FK em role_user
-        $employee->roles()->detach();
+        try {
+            DB::transaction(static function () use ($employee) {
+                // Detach roles (evita FK)
+                $employee->roles()->detach();
 
-        // Se existir relação extra de employee (ex.: additional info):
-        $employee->employeeAdditionalInformation()?->delete();
+                // Remover info adicional
+                $employee->employeeAdditionalInformation()?->delete();
 
-        $employee->delete();
+                // Finalmente, deletar o usuário
+                $employee->delete();
+            });
 
-        return to_route('admin.employees.index')->with('success', 'Funcionario excluido.');
+            return to_route('admin.employees.index')->with('success', 'Funcionário excluído.');
+        } catch (QueryException $e) {
+            // Chave estrangeira? informe que existe dependência
+            if ((int) $e->getCode() === 23000) {
+                return back()->with('error', 'Não foi possível excluir: existem registros vinculados a este funcionário.');
+            }
+            report($e);
+
+            return back()->with('error', 'Erro ao excluir funcionário.');
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->with('error', 'Erro inesperado ao excluir funcionário.');
+        }
     }
 }

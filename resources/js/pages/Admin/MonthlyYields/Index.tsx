@@ -142,11 +142,9 @@ export default function MonthlyYieldsIndex() {
             : "—";
     };
 
-    function formatMonthLabel(ym: string) {
-        // "YYYY-MM" -> "MM/YYYY"
-        if (!/^\d{4}-\d{2}$/.test(ym)) return ym;
-        const [y, m] = ym.split("-");
-        return `${m}/${y}`;
+    function formatMonthLabel(period: string) {
+        const [year, month] = period.split("-").map(Number);
+        return new Date(year, month - 1).toLocaleDateString("pt-BR", { year: "numeric", month: "2-digit" });
     }
 
     return (

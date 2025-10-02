@@ -82,9 +82,7 @@ export default function DashboardIndex({ kpis, series, range, dimension }: Props
                         <CardTitle className="text-sm text-muted-foreground">Média de rendimentos (12m)</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-semibold">
-                            {typeof kpis?.avgYield12m === "number" ? `${(kpis.avgYield12m * 100).toFixed(2)}%` : "—"}
-                        </div>
+                        <div className="text-2xl font-semibold">{kpis?.avgYield12m}</div>
                     </CardContent>
                 </Card>
             </div>

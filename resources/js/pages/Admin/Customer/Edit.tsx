@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import AppLayout from "@/layouts/app-layout";
 import { formatCpfCnpj, formatPhoneBr } from "@/lib/utils";
 import { Head, Link, useForm } from "@inertiajs/react";
+import { toast } from "sonner";
 
 export default function Edit({ customer }) {
     const { data, setData, put, processing, errors } = useForm({
@@ -30,7 +31,14 @@ export default function Edit({ customer }) {
 
     function submit(e: React.FormEvent) {
         e.preventDefault();
-        put(route("admin.customers.update", customer.data.id));
+        put(route("admin.customers.update", customer.data.id), {
+            onSuccess: () => {
+                toast.success("Cliente atualizado com sucesso.");
+            },
+            onError: () => {
+                toast.error("Erro ao atualizar cliente. Verifique os campos.");
+            },
+        });
     }
 
     return (

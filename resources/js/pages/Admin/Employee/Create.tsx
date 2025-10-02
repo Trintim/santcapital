@@ -1,9 +1,11 @@
+import { MaskedInput } from "@/components/form/MaskedInput";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AppLayout from "@/layouts/app-layout";
+import { formatCpfCnpj, formatPhoneBr } from "@/lib/utils";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { FormEvent } from "react";
 import { toast } from "sonner";
@@ -60,12 +62,25 @@ export default function Create() {
 
                         <div>
                             <Label htmlFor="phone">Telefone (11 dígitos)</Label>
-                            <Input id="phone" value={data.phone} onChange={(e) => setData("phone", e.target.value)} />
+                            <MaskedInput
+                                id="phone"
+                                mask={formatPhoneBr}
+                                value={data.phone}
+                                onChange={(e) => setData("phone", e.target.value)}
+                                placeholder="(00) 00000-0000"
+                            />
+
                             {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone}</p>}
                         </div>
                         <div>
                             <Label htmlFor="document">Documento (14 dígitos)</Label>
-                            <Input id="document" value={data.document} onChange={(e) => setData("document", e.target.value)} />
+                            <MaskedInput
+                                id="document"
+                                mask={formatCpfCnpj}
+                                value={data.document}
+                                onChange={(e) => setData("document", e.target.value)}
+                                placeholder="CPF/CNPJ"
+                            />
                             {errors.document && <p className="mt-1 text-sm text-red-500">{errors.document}</p>}
                         </div>
 

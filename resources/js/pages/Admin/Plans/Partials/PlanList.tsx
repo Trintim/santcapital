@@ -17,6 +17,7 @@ import { PlanProps } from "@/pages/Admin/Plans/types";
 import { filterQueryParams } from "@/utils";
 import { router, useForm } from "@inertiajs/react";
 import { MoreHorizontal, PlusIcon, Search } from "lucide-react";
+import { toast } from "sonner";
 import { route } from "ziggy-js";
 
 export function PlanList({ pagination, filters }: Readonly<PlanProps>) {
@@ -119,7 +120,15 @@ export function PlanList({ pagination, filters }: Readonly<PlanProps>) {
                                         <TableCell>
                                             R$ {Number(plan.minimum_deposit_amount).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                                         </TableCell>
-                                        <TableCell>{plan.is_active ? <Badge>Ativo</Badge> : <Badge variant="destructive">Inativo</Badge>}</TableCell>
+                                        <TableCell>
+                                            {plan.is_active ? (
+                                                <Badge variant={"default"} className={"bg-emerald-600 hover:bg-emerald-600"}>
+                                                    Ativo
+                                                </Badge>
+                                            ) : (
+                                                <Badge variant="destructive">Inativo</Badge>
+                                            )}
+                                        </TableCell>
 
                                         <TableCell className="text-right">
                                             <DropdownMenu>
@@ -150,6 +159,12 @@ export function PlanList({ pagination, filters }: Readonly<PlanProps>) {
                                                         onClick={() =>
                                                             router.patch(route("admin.plans.toggle-active", { plan: plan.id }), {
                                                                 preserveScroll: true,
+                                                                onSuccess: () => {
+                                                                    toast.success(`Status do plano alterado com sucesso.`);
+                                                                },
+                                                                onError: () => {
+                                                                    toast.error("Erro ao alterar status do plano.");
+                                                                },
                                                             })
                                                         }
                                                     >

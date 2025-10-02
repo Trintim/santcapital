@@ -20,8 +20,9 @@ import { formatCpfCnpj, formatPhoneBr } from "@/lib/utils";
 import { ClientProps } from "@/pages/Admin/Customer/types";
 import { filterQueryParams } from "@/utils";
 import { router, useForm } from "@inertiajs/react";
-import { MoreHorizontal, PlusIcon, Search, Trash2 } from "lucide-react";
+import { CheckCircle2, MoreHorizontal, PlusIcon, Search, Trash2, XCircle } from "lucide-react";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 import { route } from "ziggy-js";
 
 export function CustomerList({ pagination, filters }: Readonly<ClientProps>) {
@@ -85,6 +86,12 @@ export function CustomerList({ pagination, filters }: Readonly<ClientProps>) {
         setDeleting(true);
         router.delete(route("admin.customers.destroy", { customer: target.id }), {
             preserveScroll: true,
+            onSuccess: () => {
+                toast.success("Cliente excluído com sucesso.");
+            },
+            onError: () => {
+                toast.error("Erro ao excluir cliente.");
+            },
             onFinish: () => {
                 setDeleting(false);
                 setOpenDelete(false);
@@ -157,11 +164,24 @@ export function CustomerList({ pagination, filters }: Readonly<ClientProps>) {
                                                 <TableCell>{formatPhoneBr(client.phone || "")}</TableCell>
                                                 <TableCell>{formatCpfCnpj(client.document || "")}</TableCell>
                                                 <TableCell>
-                                                    {client.is_active ? (
-                                                        <Badge variant="default">Ativo</Badge>
-                                                    ) : (
-                                                        <Badge variant="destructive">Inativo</Badge>
-                                                    )}
+                                                    <Badge
+                                                        variant={"default"}
+                                                        className={
+                                                            client.is_active ? "bg-emerald-600 hover:bg-emerald-600" : "bg-red-600 hover:bg-red-600"
+                                                        }
+                                                    >
+                                                        {client.is_active ? (
+                                                            <>
+                                                                <CheckCircle2 className="size-4" />
+                                                                Ativo
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <XCircle className="size-4" />
+                                                                Inativo
+                                                            </>
+                                                        )}
+                                                    </Badge>
                                                 </TableCell>
 
                                                 <TableCell className="text-right">
@@ -182,7 +202,16 @@ export function CustomerList({ pagination, filters }: Readonly<ClientProps>) {
                                                                     router.patch(
                                                                         route("admin.customers.toggle-active", { customer: client.id }),
                                                                         {},
-                                                                        { preserveState: true, preserveScroll: true },
+                                                                        {
+                                                                            preserveState: true,
+                                                                            preserveScroll: true,
+                                                                            onSuccess: () => {
+                                                                                toast.success(`Status do cliente alterado com sucesso.`);
+                                                                            },
+                                                                            onError: () => {
+                                                                                toast.error("Erro ao alterar status do cliente.");
+                                                                            },
+                                                                        },
                                                                     );
                                                                 }}
                                                             >
