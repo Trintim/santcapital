@@ -23,22 +23,39 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import AppLayout from "@/layouts/app-layout";
 import { Head, router, useForm } from "@inertiajs/react";
 import { CheckCircle, MoreHorizontal, XCircle } from "lucide-react";
-import { useRef, useState } from "react";
+import * as React from "react";
 import { toast } from "sonner";
 import { route } from "ziggy-js";
 
-export default function Index({ withdrawals, filters }: any) {
-    // `base` pode ser "admin" ou "employee" para montar rotas dinamicamente
-    const approveRoute = (id: number) => route(`employee.withdrawals.approve`, { transaction: id });
-    const rejectRoute = (id: number) => route(`employee.withdrawals.reject`, { transaction: id });
+type Withdrawal = {
+    id: number;
+    amount: number;
+    effective_date: string; // ISO
+    status: "pending" | "approved" | "rejected";
+    created_at?: string;
+    customer_plan?: {
+        customer?: { name?: string; email?: string };
+        plan?: { name?: string };
+    };
+};
+
+type PageProps = {
+    withdrawals: { data: Withdrawal[]; meta?: any };
+    filters: { status: string; per_page: number };
+};
+
+export default function Index({ withdrawals, filters }: PageProps) {
+    // rotas do employee
+    const approveRoute = (id: number) => route("employee.withdrawals.approve", { transaction: id });
+    const rejectRoute = (id: number) => route("employee.withdrawals.reject", { transaction: id });
 
     const { data, setData } = useForm({
         status: filters.status || "pending",
         per_page: Number(filters.per_page || 15),
     });
 
-    const go = (patch: any) => {
-        router.get(route(`employee.withdrawals.index`), { ...data, ...patch }, { preserveScroll: true, preserveState: true });
+    const go = (patch: Record<string, any>) => {
+        router.get(route("employee.withdrawals.index"), { ...data, ...patch }, { preserveScroll: true, preserveState: true });
     };
 
     const setStatus = (s: string) => {
@@ -50,60 +67,73 @@ export default function Index({ withdrawals, filters }: any) {
         go({ per_page: pp });
     };
 
-    // dialogs + refs para foco seguro
-    const [confirmApprove, setConfirmApprove] = useState<{ id: number; label: string } | null>(null);
-    const [confirmReject, setConfirmReject] = useState<{ id: number; label: string } | null>(null);
-    const cancelApproveRef = useRef<HTMLButtonElement | null>(null);
-    const cancelRejectRef = useRef<HTMLButtonElement | null>(null);
+    // controle do Dropdown por linha (evita foco “perdido”)
+    const [menuOpenId, setMenuOpenId] = React.useState<number | null>(null);
+
+    // dialogs + refs (foco seguro no "Cancelar")
+    const [approveOpen, setApproveOpen] = React.useState(false);
+    const [rejectOpen, setRejectOpen] = React.useState(false);
+    const [approveCtx, setApproveCtx] = React.useState<{ id: number; label: string } | null>(null);
+    const [rejectCtx, setRejectCtx] = React.useState<{ id: number; label: string } | null>(null);
+    const approveCancelRef = React.useRef<HTMLButtonElement | null>(null);
+    const rejectCancelRef = React.useRef<HTMLButtonElement | null>(null);
 
     const openApprove = (payload: { id: number; label: string }) => {
-        // 1) desfoca o trigger do dropdown
+        setMenuOpenId(null);
         (document.activeElement as HTMLElement | null)?.blur?.();
-        // 2) aguarda o menu fechar, então abre o dialog
-        requestAnimationFrame(() => setConfirmApprove(payload));
+        requestAnimationFrame(() => {
+            setApproveCtx(payload);
+            setApproveOpen(true);
+        });
     };
 
     const openReject = (payload: { id: number; label: string }) => {
+        setMenuOpenId(null);
         (document.activeElement as HTMLElement | null)?.blur?.();
-        requestAnimationFrame(() => setConfirmReject(payload));
+        requestAnimationFrame(() => {
+            setRejectCtx(payload);
+            setRejectOpen(true);
+        });
     };
 
     const doApprove = () => {
-        if (!confirmApprove) return;
+        if (!approveCtx) return;
         router.post(
-            approveRoute(confirmApprove.id),
+            approveRoute(approveCtx.id),
             {},
             {
                 preserveScroll: true,
-                onFinish: () => setConfirmApprove(null),
                 onSuccess: () => toast.success("Saque aprovado com sucesso!"),
                 onError: () => toast.error("Erro ao aprovar saque. Tente novamente."),
+                onFinish: () => setApproveOpen(false),
             },
         );
     };
 
     const doReject = () => {
-        if (!confirmReject) return;
+        if (!rejectCtx) return;
         router.post(
-            rejectRoute(confirmReject.id),
+            rejectRoute(rejectCtx.id),
             {},
             {
                 preserveScroll: true,
-                onFinish: () => setConfirmReject(null),
                 onSuccess: () => toast.success("Saque rejeitado com sucesso!"),
                 onError: () => toast.error("Erro ao rejeitar saque. Tente novamente."),
+                onFinish: () => setRejectOpen(false),
             },
         );
     };
 
-    const fmt = (n: number) => `R$ ${n.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
-    const fmtDate = (iso: string) => new Date(iso).toLocaleDateString("pt-BR");
-
-    const statusBadge = (s: string) => {
+    // helpers
+    const fmt = (n: number) => `R$ ${Number(n ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+    const fmtDate = (iso?: string) => (iso ? new Date(iso).toLocaleDateString("pt-BR") : "—");
+    const statusBadge = (s: Withdrawal["status"]) => {
         if (s === "approved") return <Badge>aprovado</Badge>;
         if (s === "pending") return <Badge variant="secondary">pendente</Badge>;
         return <Badge variant="destructive">rejeitado</Badge>;
     };
+
+    const hasRows = withdrawals?.data?.length > 0;
 
     return (
         <AppLayout>
@@ -136,107 +166,114 @@ export default function Index({ withdrawals, filters }: any) {
                             </TableHead>
                         </TableRow>
                     </TableHeader>
+
                     <TableBody>
-                        {withdrawals?.data?.length ? (
-                            withdrawals.data.map((w: any) => (
-                                <TableRow key={w.id} className="hover:!bg-secondary/10">
-                                    <TableCell>{w.id}</TableCell>
-                                    <TableCell>{w.customer_plan?.customer?.name ?? "—"}</TableCell>
-                                    <TableCell>{w.customer_plan?.plan?.name ?? "—"}</TableCell>
-                                    <TableCell>{fmtDate(w.effective_date)}</TableCell>
-                                    <TableCell className="text-right">{fmt(w.amount)}</TableCell>
-                                    <TableCell>{statusBadge(w.status)}</TableCell>
-                                    <TableCell className="text-right">
-                                        {w.status === "pending" ? (
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" className="h-8 w-8 p-0">
-                                                        <span className="sr-only">Abrir menu</span>
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem
-                                                        onSelect={(e) => {
-                                                            e.preventDefault();
-                                                            openApprove({ id: w.id, label: `${w.customer_plan?.customer?.name} — ${fmt(w.amount)}` });
-                                                        }}
-                                                    >
-                                                        <CheckCircle className="mr-2 h-4 w-4" />
-                                                        Aprovar
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem
-                                                        className="text-red-600 focus:text-red-600"
-                                                        onSelect={(e) => {
-                                                            e.preventDefault();
-                                                            openReject({ id: w.id, label: `${w.customer_plan?.customer?.name} — ${fmt(w.amount)}` });
-                                                        }}
-                                                    >
-                                                        <XCircle className="mr-2 h-4 w-4" />
-                                                        Rejeitar
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        ) : (
-                                            <span className="text-muted-foreground">—</span>
-                                        )}
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        ) : (
+                        {!hasRows ? (
                             <TableRow>
                                 <TableCell colSpan={7} className="h-24 text-center text-sm text-muted-foreground">
                                     Nada encontrado.
                                 </TableCell>
                             </TableRow>
+                        ) : (
+                            withdrawals.data.map((w) => {
+                                const label = `${w.customer_plan?.customer?.name ?? "Cliente"} — ${fmt(w.amount)}`;
+                                const menuOpen = menuOpenId === w.id;
+
+                                return (
+                                    <TableRow key={w.id} className="hover:!bg-secondary/10">
+                                        <TableCell>{w.id}</TableCell>
+                                        <TableCell className="max-w-48 truncate">
+                                            {w.customer_plan?.customer?.name ?? "—"}
+                                            {w.customer_plan?.customer?.email && (
+                                                <div className="text-xs text-muted-foreground">{w.customer_plan.customer.email}</div>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="max-w-48 truncate">{w.customer_plan?.plan?.name ?? "—"}</TableCell>
+                                        <TableCell>{fmtDate(w.created_at || w.effective_date)}</TableCell>
+                                        <TableCell className="text-right">{fmt(w.amount)}</TableCell>
+                                        <TableCell>{statusBadge(w.status)}</TableCell>
+                                        <TableCell className="text-right">
+                                            {w.status === "pending" ? (
+                                                <DropdownMenu open={menuOpen} onOpenChange={(o) => setMenuOpenId(o ? w.id : null)}>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" className="h-8 w-8 p-0">
+                                                            <span className="sr-only">Abrir menu</span>
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem
+                                                            onSelect={(e) => {
+                                                                e.preventDefault();
+                                                                openApprove({ id: w.id, label });
+                                                            }}
+                                                        >
+                                                            <CheckCircle className="mr-2 h-4 w-4" />
+                                                            Aprovar
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            className="text-red-600 focus:text-red-600"
+                                                            onSelect={(e) => {
+                                                                e.preventDefault();
+                                                                openReject({ id: w.id, label });
+                                                            }}
+                                                        >
+                                                            <XCircle className="mr-2 h-4 w-4" />
+                                                            Rejeitar
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            ) : (
+                                                <span className="text-muted-foreground">—</span>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })
                         )}
                     </TableBody>
                 </Table>
             </div>
 
             <div className="mt-3">
-                <Paginate meta={withdrawals?.meta} perPage={data.per_page} setPerPage={(pp) => setPerPage(pp)} />
+                <Paginate meta={withdrawals?.meta} perPage={data.per_page} setPerPage={setPerPage} />
             </div>
 
             {/* APPROVE dialog */}
-            <AlertDialog open={!!confirmApprove} onOpenChange={(o) => !o && setConfirmApprove(null)}>
+            <AlertDialog open={approveOpen} onOpenChange={setApproveOpen}>
                 <AlertDialogContent
-                    // 3) bloqueia auto-focus do Radix
                     onOpenAutoFocus={(e) => {
                         e.preventDefault();
+                        approveCancelRef.current?.focus();
                     }}
-                    // opcional: ao montar, foca o cancelar
-                    onPointerDownOutside={(e) => e.preventDefault()}
-                    onInteractOutside={(e) => e.preventDefault()}
                 >
                     <AlertDialogHeader>
                         <AlertDialogTitle>Aprovar saque?</AlertDialogTitle>
-                        <AlertDialogDescription>{confirmApprove?.label}</AlertDialogDescription>
+                        <AlertDialogDescription>{approveCtx?.label}</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel ref={cancelApproveRef}>Cancelar</AlertDialogCancel>
+                        <AlertDialogCancel ref={approveCancelRef}>Cancelar</AlertDialogCancel>
                         <AlertDialogAction onClick={doApprove}>Aprovar</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
 
             {/* REJECT dialog */}
-            <AlertDialog open={!!confirmReject} onOpenChange={(o) => !o && setConfirmReject(null)}>
+            <AlertDialog open={rejectOpen} onOpenChange={setRejectOpen}>
                 <AlertDialogContent
                     onOpenAutoFocus={(e) => {
                         e.preventDefault();
+                        rejectCancelRef.current?.focus();
                     }}
-                    onPointerDownOutside={(e) => e.preventDefault()}
-                    onInteractOutside={(e) => e.preventDefault()}
                 >
                     <AlertDialogHeader>
                         <AlertDialogTitle>Rejeitar saque?</AlertDialogTitle>
-                        <AlertDialogDescription>{confirmReject?.label}</AlertDialogDescription>
+                        <AlertDialogDescription>{rejectCtx?.label}</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel ref={cancelRejectRef}>Cancelar</AlertDialogCancel>
+                        <AlertDialogCancel ref={rejectCancelRef}>Cancelar</AlertDialogCancel>
                         <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={doReject}>
                             Rejeitar
                         </AlertDialogAction>

@@ -38,7 +38,6 @@ class DashboardController extends Controller
 
         $totalInvestido   = (float) $totals->deposits + (float) $totals->yields - (float) $totals->withdraws;
         $totalRendimentos = (float) $totals->yields;
-        $totalSacado      = (float) $totals->withdraws;
 
         $qtdAportes = (int) DB::table('money_transactions as t')
             ->join('customer_plans as cp', 'cp.id', '=', 't.customer_plan_id')
