@@ -7,7 +7,9 @@ namespace App\Providers;
 use App\Enums\Auth\Can;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
@@ -26,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
         $this->configUrls();
         $this->configDate();
         $this->configGates();
+        $this->redirectIfAuthenticated();
     }
 
     /**
@@ -76,5 +79,10 @@ class AppServiceProvider extends ServiceProvider
                     ->exists()
             );
         }
+    }
+
+    private function redirectIfAuthenticated(): void
+    {
+        RedirectIfAuthenticated::redirectUsing(static fn (Request $request) => $request->user()?->roles()->first()->name->routeByRole());
     }
 }

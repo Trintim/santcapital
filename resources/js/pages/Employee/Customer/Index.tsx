@@ -11,6 +11,7 @@ import { useSort } from "@/hooks/useSort";
 import AppLayout from "@/layouts/app-layout";
 import { Head, router, useForm } from "@inertiajs/react";
 import { CheckCircle2, Eye, MoreHorizontal, PlusIcon, Search, ToggleLeft, XCircle } from "lucide-react";
+import { toast } from "sonner";
 import { route } from "ziggy-js";
 
 export default function Index({ pagination, filters }) {
@@ -149,7 +150,16 @@ export default function Index({ pagination, filters }) {
                                                             router.post(
                                                                 route("employee.customers.toggle-active", { customer: client.id }),
                                                                 {},
-                                                                { preserveState: true },
+                                                                {
+                                                                    preserveState: true,
+                                                                    onSuccess: () =>
+                                                                        toast.success(
+                                                                            client.is_active
+                                                                                ? "Cliente desativado com sucesso!"
+                                                                                : "Cliente ativado com sucesso!",
+                                                                        ),
+                                                                    onError: () => toast.error("Erro ao alterar status do cliente. Tente novamente."),
+                                                                },
                                                             );
                                                         }}
                                                     >

@@ -24,6 +24,7 @@ import AppLayout from "@/layouts/app-layout";
 import { Head, router, useForm } from "@inertiajs/react";
 import { CheckCircle, MoreHorizontal, XCircle } from "lucide-react";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 import { route } from "ziggy-js";
 
 export default function Index({ withdrawals, filters }: any) {
@@ -75,6 +76,8 @@ export default function Index({ withdrawals, filters }: any) {
             {
                 preserveScroll: true,
                 onFinish: () => setConfirmApprove(null),
+                onSuccess: () => toast.success("Saque aprovado com sucesso!"),
+                onError: () => toast.error("Erro ao aprovar saque. Tente novamente."),
             },
         );
     };
@@ -87,6 +90,8 @@ export default function Index({ withdrawals, filters }: any) {
             {
                 preserveScroll: true,
                 onFinish: () => setConfirmReject(null),
+                onSuccess: () => toast.success("Saque rejeitado com sucesso!"),
+                onError: () => toast.error("Erro ao rejeitar saque. Tente novamente."),
             },
         );
     };

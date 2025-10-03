@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { toast } from "sonner";
 
 export type PlanForWithdraw = {
     id: number;
@@ -86,7 +87,27 @@ export default function WithdrawDialog({ open, onOpenChange, plan }: Props) {
             },
             {
                 preserveState: true,
-                onFinish: () => onOpenChange(false),
+                onSuccess: () => {
+                    toast.success("Solicitação de saque enviada com sucesso!");
+                },
+                onError: () => {
+                    toast.error("Erro ao enviar solicitação de saque. Verifique os campos e tente novamente.");
+                },
+                onFinish: () => {
+                    onOpenChange(false);
+                    setForm((prev) => ({
+                        ...prev,
+                        amount: "",
+                        method: "pix",
+                        pix_key: "",
+                        bank_name: "",
+                        bank_code: "",
+                        agency_number: "",
+                        account_number: "",
+                        holder_name: "",
+                        holder_cpf_cnpj: "",
+                    }));
+                },
             },
         );
     };

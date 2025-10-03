@@ -17,6 +17,7 @@ import { filterQueryParams } from "@/utils";
 import { router, useForm } from "@inertiajs/react";
 import { Bolt, MoreHorizontal, PlusIcon, Search } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { route } from "ziggy-js";
 
 export function CustomerPlanList({ pagination, filters }) {
@@ -152,7 +153,12 @@ export function CustomerPlanList({ pagination, filters }) {
                                                                     router.post(
                                                                         route("admin.customer-plans.activate", { customerPlan: cp.id }),
                                                                         {},
-                                                                        { preserveState: true, preserveScroll: true },
+                                                                        {
+                                                                            preserveState: true,
+                                                                            preserveScroll: true,
+                                                                            onSuccess: () => toast.success("Plano ativado com sucesso!"),
+                                                                            onError: () => toast.error("Erro ao ativar plano. Tente novamente."),
+                                                                        },
                                                                     );
                                                                 }}
                                                             >

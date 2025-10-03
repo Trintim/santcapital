@@ -27,6 +27,7 @@ import { Head, router, useForm, usePage } from "@inertiajs/react";
 import { MoreHorizontal, Trash2 } from "lucide-react";
 import * as React from "react";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 import { route } from "ziggy-js";
 
 type Plan = { id: number; name: string };
@@ -71,8 +72,12 @@ export default function MonthlyYieldsIndex() {
 
         post(route("admin.monthly-yields.store"), {
             onSuccess: () => {
+                toast.success("Rendimento registrado com sucesso.");
                 reset();
                 setDisplay("");
+            },
+            onError: () => {
+                toast.error("Erro ao registrar rendimento. Verifique os campos.");
             },
         });
     };
@@ -97,6 +102,8 @@ export default function MonthlyYieldsIndex() {
         if (!toDelete) return;
         router.delete(route("admin.monthly-yields.destroy", { monthlyYield: toDelete.id }), {
             preserveState: true,
+            onSuccess: () => toast.success("Rendimento removido com sucesso."),
+            onError: () => toast.error("Erro ao remover rendimento. Tente novamente."),
             onFinish: () => setConfirmOpen(false),
         });
     };
@@ -127,6 +134,8 @@ export default function MonthlyYieldsIndex() {
             },
             {
                 preserveState: true,
+                onSuccess: () => toast.success("Rendimento aplicado com sucesso."),
+                onError: () => toast.error("Erro ao aplicar rendimento. Tente novamente."),
                 onFinish: () => setApplyOpen(false),
             },
         );

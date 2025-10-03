@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import AppLayout from "@/layouts/app-layout";
 import { formatCpfCnpj, formatPhoneBr } from "@/lib/utils";
 import { Head, Link, useForm } from "@inertiajs/react";
+import { toast } from "sonner";
 import { FormEvent } from "react";
 
 export default function Create() {
@@ -28,9 +29,12 @@ export default function Create() {
         },
     });
 
-    function submit(e: FormEvent) {
+    function submit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        post(route("employee.customers.store"));
+        post(route("employee.customers.store"), {
+            onSuccess: () => toast.success("Cliente criado com sucesso!"),
+            onError: () => toast.error("Erro ao criar cliente. Verifique os campos."),
+        });
     }
 
     return (
@@ -201,12 +205,12 @@ export default function Create() {
                             </div>
                         </fieldset>
 
-                        <div className="flex gap-2 md:col-span-2">
+                        <div className="md:col-span-2 flex justify-end">
                             <Link href={route("employee.customers.index")}>
                                 <Button variant="outline">Cancelar</Button>
                             </Link>
                             <Button type="submit" disabled={processing}>
-                                Criar cliente
+                                {processing ? "Salvando..." : "Salvar"}
                             </Button>
                         </div>
                     </form>

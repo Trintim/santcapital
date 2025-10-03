@@ -18,7 +18,7 @@ Route::middleware(['auth', 'role:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        Route::get('dashboard', Admin\DashboardController::class)->name('dashboard');
+        Route::get('/', Admin\DashboardController::class)->name('dashboard');
 
         // Plans
         Route::prefix('planos')
@@ -98,7 +98,7 @@ Route::middleware(['auth', 'role:admin'])
         Route::prefix('saques')->name('withdrawals.')->group(function () {
             Route::get('/', [Admin\WithdrawalController::class, 'index'])->name('index');
             Route::post('{transaction}/approve', [Admin\WithdrawalController::class, 'approve'])->name('approve');
-            Route::post('{transaction}/reject',  [Admin\WithdrawalController::class, 'reject'])->name('reject');
+            Route::post('{transaction}/reject', [Admin\WithdrawalController::class, 'reject'])->name('reject');
         });
     });
 
@@ -106,8 +106,7 @@ Route::middleware(['auth', 'role:employee'])
     ->prefix('funcionarios')
     ->name('employee.')
     ->group(function () {
-        // mesmo dashboard do admin
-        Route::get('dashboard', DashboardController::class)->name('dashboard');
+        Route::get('/', DashboardController::class)->name('dashboard');
 
         //  Clientes (sem excluir/editar/criar)
         Route::prefix('clientes')->name('customers.')->group(function () {
@@ -137,15 +136,15 @@ Route::middleware(['auth', 'role:employee'])
         Route::prefix('saques')->name('withdrawals.')->group(function () {
             Route::get('/', [Employee\WithdrawalController::class, 'index'])->name('index');
             Route::post('{transaction}/approve', [Employee\WithdrawalController::class, 'approve'])->name('approve');
-            Route::post('{transaction}/reject',  [Employee\WithdrawalController::class, 'reject'])->name('reject');
+            Route::post('{transaction}/reject', [Employee\WithdrawalController::class, 'reject'])->name('reject');
         });
     });
 
 Route::middleware(['auth', 'role:customer'])
-    ->prefix('cliente') // melhor PT-BR e consistente com admin/employee
+    ->prefix('cliente')
     ->name('customer.')
     ->group(function () {
-        Route::get('dashboard', [App\Http\Controllers\Customer\DashboardController::class, '__invoke'])
+        Route::get('/', [App\Http\Controllers\Customer\DashboardController::class, '__invoke'])
             ->name('dashboard');
 
         // Aportes / Extrato

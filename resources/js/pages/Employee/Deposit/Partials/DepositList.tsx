@@ -16,6 +16,7 @@ import { useSort } from "@/hooks/useSort";
 import { filterQueryParams } from "@/utils";
 import { router, useForm } from "@inertiajs/react";
 import { MoreHorizontal, PlusIcon, Search } from "lucide-react";
+import { toast } from "sonner";
 import { route } from "ziggy-js";
 
 export function DepositList({ pagination, filters }) {
@@ -58,11 +59,25 @@ export function DepositList({ pagination, filters }) {
     };
 
     function approve(id: number) {
-        router.post(route("employee.deposits.approve", { transaction: id }));
+        router.post(
+            route("employee.deposits.approve", { transaction: id }),
+            {},
+            {
+                onSuccess: () => toast.success("Aporte aprovado com sucesso!"),
+                onError: () => toast.error("Erro ao aprovar aporte. Tente novamente."),
+            },
+        );
     }
 
     function reject(id: number) {
-        router.post(route("employee.deposits.reject", { transaction: id }));
+        router.post(
+            route("employee.deposits.reject", { transaction: id }),
+            {},
+            {
+                onSuccess: () => toast.success("Aporte rejeitado com sucesso!"),
+                onError: () => toast.error("Erro ao rejeitar aporte. Tente novamente."),
+            },
+        );
     }
 
     const hasDeposits = pagination.data.length > 0;
