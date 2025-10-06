@@ -23,11 +23,13 @@ class DashboardController extends Controller
 
         // === KPIs ===
 
+        // 1) Clientes ativos (tem pelo menos 1 vínculo ativo)
         $activeCustomers = CustomerPlan::query()
             ->where('status', 'active')
             ->distinct('user_id')
             ->count('user_id');
 
+        // 2) Total investido = depósitos + rendimentos - saques (aprovados)
         $totals = DB::table('money_transactions')
             ->where('status', MoneyTransaction::STATUS_APPROVED)
             ->selectRaw('
@@ -43,14 +45,26 @@ class DashboardController extends Controller
 
         $totalInvested = (float) $totals->deposits + (float) $totals->yields - (float) $totals->withdraws;
 
+        // 3) Média de rendimentos (12m mais recentes) — retorna DECIMAL cru (ex.: 0.0245)
         $avgYield12m = MonthlyYield::query()
             ->whereDate('period', '>=', $now->subMonths(12)->startOfMonth()->toDateString())
             ->whereDate('period', '<=', $now->endOfDay()->toDateString())
             ->avg('percent_decimal');
 
-        // === Série temporal sem CTE ===
+        // 4) Saques pendentes (count + total)
+        $pendingWithdrawalsCount = MoneyTransaction::query()
+            ->where('type', MoneyTransaction::TYPE_WITHDRAWAL)
+            ->where('status', MoneyTransaction::STATUS_PENDING)
+            ->count();
+
+        $pendingWithdrawalsTotal = (float) MoneyTransaction::query()
+            ->where('type', MoneyTransaction::TYPE_WITHDRAWAL)
+            ->where('status', MoneyTransaction::STATUS_PENDING)
+            ->sum('amount');
+
+        // === Série temporal (sem CTE) ===
         if ($range === '7d') {
-            // diário: últimos 7 dias (apenas dias com movimento)
+            // Diário: últimos 7 dias (apenas dias com movimento)
             $start = $now->startOfDay()->subDays(6);
             $end   = $now->endOfDay();
 
@@ -74,7 +88,7 @@ class DashboardController extends Controller
 
             $series = $rows->map(fn ($r) => [
                 'key'       => (string) $r->k,
-                'label'     => (string) $r->label, // dd/mm
+                'label'     => (string) $r->label, // yyyy/mm/dd
                 'deposits'  => (float) $r->deposits,
                 'withdraws' => (float) $r->withdraws,
                 'yields'    => (float) $r->yields,
@@ -83,6 +97,7 @@ class DashboardController extends Controller
 
             $dimension = ['mode' => 'day'];
         } else {
+            // Mensal: últimos 3/9/12 meses (apenas meses com movimento)
             $monthsBack = [
                 '3m'  => 3,
                 '9m'  => 9,
@@ -110,29 +125,31 @@ class DashboardController extends Controller
                 ->orderBy('k')
                 ->get();
 
-            $series = $rows->map(function ($r) {
-                return [
-                    'key'       => (string) $r->k,
-                    'label'     => (string) $r->label, // YYYY-MM-01
-                    'deposits'  => (float) $r->deposits,
-                    'withdraws' => (float) $r->withdraws,
-                    'yields'    => (float) $r->yields,
-                    'net'       => (float) $r->deposits + (float) $r->yields - (float) $r->withdraws,
-                ];
-            })->all();
+            $series = $rows->map(fn ($r) => [
+                'key'       => (string) $r->k,
+                'label'     => (string) $r->label, // YYYY-MM-01
+                'deposits'  => (float) $r->deposits,
+                'withdraws' => (float) $r->withdraws,
+                'yields'    => (float) $r->yields,
+                'net'       => (float) $r->deposits + (float) $r->yields - (float) $r->withdraws,
+            ])->all();
 
             $dimension = ['mode' => 'month'];
         }
 
         return Inertia::render('Employee/Dashboard/Index', [
             'kpis' => [
-                'activeCustomers' => $activeCustomers,
-                'totalInvested'   => $totalInvested,
-                'avgYield12m'     => Number::percentage((float) $avgYield12m * 100, 2),
+                'activeCustomers'    => $activeCustomers,
+                'totalInvested'      => $totalInvested,
+                'avgYield12m'        => $avgYield12m, // decimal (formata na UI)
+                'pendingWithdrawals' => [
+                    'count' => $pendingWithdrawalsCount,
+                    'total' => $pendingWithdrawalsTotal,
+                ],
             ],
-            'series'    => $series,          // { key, label, deposits, yields, withdraws, net }
-            'range'     => $range,           // '7d' | '3m' | '9m' | '12m'
-            'dimension' => $dimension,       // { mode: 'day' | 'month' }
+            'series'    => $series,     // { key, label, deposits, yields, withdraws, net }
+            'range'     => $range,      // '7d' | '3m' | '9m' | '12m'
+            'dimension' => $dimension,  // { mode: 'day' | 'month' }
         ]);
     }
 }
