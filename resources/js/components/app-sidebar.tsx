@@ -70,7 +70,6 @@ const funcionarioNavItems: NavItem[] = [
         href: "/funcionarios/saques",
         icon: ChartCandlestickIcon,
     },
-    // ...outros itens de funcionário
 ];
 
 const clienteNavItems: NavItem[] = [
