@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Http\Resources\Admin;
 
+use App\Http\Resources\EmployeeAdditionalInformationResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -19,6 +20,7 @@ class EmployeeResource extends JsonResource
             'email'      => $this->email,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'additional' => EmployeeAdditionalInformationResource::make($this->whenLoaded('employeeAdditionalInformation')),
         ];
     }
 }

@@ -9,7 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Client\IndexRequest;
 use App\Http\Requests\Admin\Client\StoreCustomerRequest;
 use App\Http\Requests\Admin\Client\UpdateCustomerRequest;
-use App\Http\Resources\Admin\ClientResource;
+use App\Http\Resources\Admin\CustomerResource;
 use App\Models\CustomerPlan;
 use App\Models\MoneyTransaction;
 use App\Models\Role;
@@ -33,7 +33,7 @@ class CustomerController extends Controller
         $search    = $request->validated('search');
         $perPage   = $request->validated('per-page', 15);
 
-        $clients = ClientResource::collection(
+        $clients = CustomerResource::collection(
             User::query()
                 ->select(['id', 'name', 'email', 'phone', 'document', 'is_active'])
                 ->with(['customerAdditionalInformation'])
@@ -108,7 +108,7 @@ class CustomerController extends Controller
     public function edit(User $customer)
     {
         return Inertia::render('Admin/Customer/Edit', [
-            'customer' => ClientResource::make($customer->load(['customerAdditionalInformation'])),
+            'customer' => CustomerResource::make($customer->load(['customerAdditionalInformation'])),
         ]);
     }
 

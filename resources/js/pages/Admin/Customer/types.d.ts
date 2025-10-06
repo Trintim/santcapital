@@ -1,9 +1,9 @@
 import { SortState } from "@/types";
-import { ClientResource } from "@/types/client";
+import { CustomerResource } from "@/types/customer";
 import { PaginationData } from "@/types/pagination";
 
-export interface ClientProps {
-    pagination: PaginationData<ClientResource>;
+export interface CustomerProps {
+    pagination: PaginationData<CustomerResource>;
     filters: SortState & {
         search: string;
         "per-page": number;
