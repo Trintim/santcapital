@@ -8,7 +8,7 @@ import AppLogo from "./app-logo";
 const mainNavItems: NavItem[] = [
     {
         title: "Dashboard",
-        href: "/admin/dashboard",
+        href: "/admin",
         icon: HomeIcon,
     },
     {
@@ -49,7 +49,7 @@ const mainNavItems: NavItem[] = [
 ];
 
 const funcionarioNavItems: NavItem[] = [
-    { title: "Dashboard", href: "/funcionarios/dashboard", icon: HomeIcon },
+    { title: "Dashboard", href: "/funcionarios", icon: HomeIcon },
     {
         title: "Clientes",
         href: "/funcionarios/clientes",
@@ -74,7 +74,7 @@ const funcionarioNavItems: NavItem[] = [
 ];
 
 const clienteNavItems: NavItem[] = [
-    { title: "Dashboard", href: "/cliente/dashboard", icon: HomeIcon },
+    { title: "Dashboard", href: "/cliente", icon: HomeIcon },
     {
         title: "Meus Aportes",
         href: "/cliente/aportes",
