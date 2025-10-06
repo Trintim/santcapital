@@ -4,9 +4,9 @@ declare(strict_types = 1);
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\Admin\ClientResource;
+use App\Http\Resources\Admin\PlanResource;
 use App\Models\CustomerPlan;
-use App\Resources\Admin\ClientResource;
-use App\Resources\Admin\PlanResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 

@@ -9,7 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Employee\IndexRequest;
 use App\Http\Requests\Admin\Employee\StoreEmployeeRequest;
 use App\Http\Requests\Admin\Employee\UpdateEmployeeRequest;
-use App\Http\Resources\EmployeeResource;
+use App\Http\Resources\Admin\EmployeeResource;
 use App\Models\Role;
 use App\Models\User;
 use App\Notifications\WelcomeEmployeeNotification;

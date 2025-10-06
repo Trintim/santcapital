@@ -8,8 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Plan\IndexRequest;
 use App\Http\Requests\Admin\StoreInvestmentPlanRequest;
 use App\Http\Requests\Admin\UpdateInvestmentPlanRequest;
+use App\Http\Resources\Admin\PlanResource;
 use App\Models\InvestmentPlan;
-use App\Resources\Admin\PlanResource;
 use Inertia\Inertia;
 
 class InvestmentPlanController extends Controller

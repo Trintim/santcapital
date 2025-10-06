@@ -5,8 +5,6 @@ declare(strict_types = 1);
 namespace App\Http\Resources;
 
 use App\Models\MoneyTransaction;
-use App\Resources\Admin\ClientResource;
-use App\Resources\Admin\PlanResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
