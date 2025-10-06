@@ -169,7 +169,7 @@ export function CustomerPlanList({ pagination, filters }: Props) {
                                                                     );
                                                                 }}
                                                             >
-                                                                <Bolt className="mr-2 h-4 w-4" />
+                                                                <Bolt className="mr-2 h-4 w-4 text-emerald-600" />
                                                                 Ativar plano
                                                             </DropdownMenuItem>
                                                         )}
@@ -182,6 +182,7 @@ export function CustomerPlanList({ pagination, filters }: Props) {
                                                                 router.visit(route("admin.deposits.create", { cp: cp.id }));
                                                             }}
                                                         >
+                                                            <PlusIcon className="mr-2 h-4 w-4" />
                                                             Novo aporte
                                                         </DropdownMenuItem>
 

@@ -15,7 +15,7 @@ import { useFilter } from "@/hooks/useFilter";
 import { useSort } from "@/hooks/useSort";
 import { filterQueryParams } from "@/utils";
 import { router, useForm } from "@inertiajs/react";
-import { MoreHorizontal, PlusIcon, Search } from "lucide-react";
+import { CheckCircle2, MoreHorizontal, PlusIcon, Search, Trash2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { route } from "ziggy-js";
 
@@ -201,11 +201,18 @@ export function DepositList({ pagination, filters }) {
                                                     <DropdownMenuSeparator />
                                                     {t.status === "pending" && (
                                                         <>
-                                                            <DropdownMenuItem onClick={() => approve(t.id)}>Aprovar</DropdownMenuItem>
-                                                            <DropdownMenuItem onClick={() => reject(t.id)}>Rejeitar</DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => approve(t.id)}>
+                                                                <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-600" />
+                                                                Aprovar
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => reject(t.id)}>
+                                                                <XCircle className="mr-2 h-4 w-4 text-red-600" />
+                                                                Rejeitar
+                                                            </DropdownMenuItem>
                                                         </>
                                                     )}
                                                     <DropdownMenuItem onClick={() => removeTx(t.id)} className="text-red-600">
+                                                        <Trash2 className="mr-2 h-4 w-4" />
                                                         Excluir
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>

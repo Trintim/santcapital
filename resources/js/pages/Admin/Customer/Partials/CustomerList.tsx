@@ -20,7 +20,7 @@ import { formatCpfCnpj, formatPhoneBr } from "@/lib/utils";
 import { CustomerProps } from "@/pages/Admin/Customer/types";
 import { filterQueryParams } from "@/utils";
 import { router, useForm } from "@inertiajs/react";
-import { CheckCircle2, MoreHorizontal, PlusIcon, Search, Trash2, XCircle } from "lucide-react";
+import { CheckCircle2, MoreHorizontal, Pencil, PlusIcon, Search, Trash2, XCircle } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { route } from "ziggy-js";
@@ -215,7 +215,15 @@ export function CustomerList({ pagination, filters }: Readonly<CustomerProps>) {
                                                                     );
                                                                 }}
                                                             >
-                                                                {client.is_active ? "Desativar" : "Ativar"}
+                                                                {client.is_active ? (
+                                                                    <>
+                                                                        <XCircle className="mr-2 h-4 w-4 text-red-600" />Desativar
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-600" />Ativar
+                                                                    </>
+                                                                )}
                                                             </DropdownMenuItem>
                                                             <DropdownMenuItem
                                                                 onSelect={(e) => {
@@ -225,7 +233,7 @@ export function CustomerList({ pagination, filters }: Readonly<CustomerProps>) {
                                                                     router.visit(route("admin.customers.edit", { customer: client.id }));
                                                                 }}
                                                             >
-                                                                Editar
+                                                                <Pencil className="mr-2 h-4 w-4" />Editar
                                                             </DropdownMenuItem>
                                                             <DropdownMenuItem
                                                                 className="text-destructive focus:text-destructive"
@@ -234,8 +242,7 @@ export function CustomerList({ pagination, filters }: Readonly<CustomerProps>) {
                                                                     askDelete(client.id, client.name);
                                                                 }}
                                                             >
-                                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                                Excluir
+                                                                <Trash2 className="mr-2 h-4 w-4" />Excluir
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>

@@ -26,7 +26,7 @@ import { useFilter } from "@/hooks/useFilter";
 import { useSort } from "@/hooks/useSort";
 import { filterQueryParams } from "@/utils";
 import { router, useForm } from "@inertiajs/react";
-import { CheckCircle2, MoreHorizontal, PlusIcon, Search, XCircle } from "lucide-react";
+import { CheckCircle2, MoreHorizontal, Pencil, PlusIcon, Search, Trash2, XCircle } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { route } from "ziggy-js";
@@ -218,6 +218,7 @@ export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
                                                                 router.visit(route("admin.employees.edit", { employee: emp.id }));
                                                             }}
                                                         >
+                                                            <Pencil className="mr-2 h-4 w-4" />
                                                             Editar
                                                         </DropdownMenuItem>
 
@@ -227,7 +228,17 @@ export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
                                                                 toggleActive(emp.id);
                                                             }}
                                                         >
-                                                            {emp.is_active ? "Desativar" : "Ativar"}
+                                                            {emp.is_active ? (
+                                                                <>
+                                                                    <XCircle className="mr-2 h-4 w-4 text-red-600" />
+                                                                    Desativar
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-600" />
+                                                                    Ativar
+                                                                </>
+                                                            )}
                                                         </DropdownMenuItem>
 
                                                         <DropdownMenuSeparator />
@@ -239,6 +250,7 @@ export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
                                                                 openConfirm(emp.id, emp.name);
                                                             }}
                                                         >
+                                                            <Trash2 className="mr-2 h-4 w-4" />
                                                             Remover
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>

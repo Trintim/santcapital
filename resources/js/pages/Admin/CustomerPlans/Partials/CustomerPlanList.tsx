@@ -27,7 +27,7 @@ import { CustomerPlanResource } from "@/types/customer-plan";
 import { PaginationData } from "@/types/pagination";
 import { filterQueryParams } from "@/utils";
 import { router, useForm } from "@inertiajs/react";
-import { Bolt, MoreHorizontal, PlusIcon, Search } from "lucide-react";
+import { Bolt, MoreHorizontal, PlusIcon, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { route } from "ziggy-js";
@@ -220,11 +220,10 @@ export function CustomerPlanList({ pagination, filters }: Props) {
                                                                     );
                                                                 }}
                                                             >
-                                                                <Bolt className="mr-2 h-4 w-4" />
+                                                                <Bolt className="mr-2 h-4 w-4 text-emerald-600" />
                                                                 Ativar plano
                                                             </DropdownMenuItem>
                                                         )}
-
                                                         <DropdownMenuItem
                                                             onSelect={(e) => {
                                                                 e.preventDefault();
@@ -233,6 +232,7 @@ export function CustomerPlanList({ pagination, filters }: Props) {
                                                                 router.visit(route("admin.deposits.create", { cp: cp.id }));
                                                             }}
                                                         >
+                                                            <PlusIcon className="mr-2 h-4 w-4" />
                                                             Novo aporte
                                                         </DropdownMenuItem>
 
@@ -245,6 +245,7 @@ export function CustomerPlanList({ pagination, filters }: Props) {
                                                                 openConfirm(cp.id, `${cp.customer?.name} — ${cp.plan?.name}`);
                                                             }}
                                                         >
+                                                            <Trash2 className="mr-2 h-4 w-4" />
                                                             Remover
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>

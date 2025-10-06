@@ -16,7 +16,7 @@ import { useSort } from "@/hooks/useSort";
 import { PlanProps } from "@/pages/Admin/Plans/types";
 import { filterQueryParams } from "@/utils";
 import { router, useForm } from "@inertiajs/react";
-import { MoreHorizontal, PlusIcon, Search } from "lucide-react";
+import { CheckCircle2, Eye, MoreHorizontal, Pencil, PlusIcon, Search, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { route } from "ziggy-js";
 
@@ -145,12 +145,14 @@ export function PlanList({ pagination, filters }: Readonly<PlanProps>) {
                                                         className={"cursor-pointer"}
                                                         onClick={() => router.visit(route("admin.plans.show", { plan: plan.id }))}
                                                     >
+                                                        <Eye className="mr-2 h-4 w-4" />
                                                         Ver plano
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
                                                         className={"cursor-pointer"}
                                                         onClick={() => router.visit(route("admin.plans.edit", { plan: plan.id }))}
                                                     >
+                                                        <Pencil className="mr-2 h-4 w-4" />
                                                         Editar
                                                     </DropdownMenuItem>
 
@@ -168,7 +170,17 @@ export function PlanList({ pagination, filters }: Readonly<PlanProps>) {
                                                             })
                                                         }
                                                     >
-                                                        {plan.is_active ? "Desativar" : "Ativar"}
+                                                        {plan.is_active ? (
+                                                            <>
+                                                                <XCircle className="mr-2 h-4 w-4 text-red-600" />
+                                                                Desativar
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-600" />
+                                                                Ativar
+                                                            </>
+                                                        )}
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>

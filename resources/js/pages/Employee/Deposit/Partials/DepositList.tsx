@@ -15,7 +15,7 @@ import { useFilter } from "@/hooks/useFilter";
 import { useSort } from "@/hooks/useSort";
 import { filterQueryParams } from "@/utils";
 import { router, useForm } from "@inertiajs/react";
-import { MoreHorizontal, PlusIcon, Search } from "lucide-react";
+import { CheckCircle2, MinusCircle, MoreHorizontal, PlusIcon, Search, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { route } from "ziggy-js";
 
@@ -182,12 +182,21 @@ export function DepositList({ pagination, filters }) {
                                                     <DropdownMenuSeparator />
                                                     {t.status === "pending" && (
                                                         <>
-                                                            <DropdownMenuItem onClick={() => approve(t.id)}>Aprovar</DropdownMenuItem>
-                                                            <DropdownMenuItem onClick={() => reject(t.id)}>Rejeitar</DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => approve(t.id)}>
+                                                                <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-600" />
+                                                                Aprovar
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => reject(t.id)}>
+                                                                <XCircle className="mr-2 h-4 w-4 text-red-600" />
+                                                                Rejeitar
+                                                            </DropdownMenuItem>
                                                         </>
                                                     )}
                                                     {!(t.status === "pending") && (
-                                                        <DropdownMenuItem disabled>Nenhuma ação disponível</DropdownMenuItem>
+                                                        <DropdownMenuItem disabled>
+                                                            <MinusCircle className="mr-2 h-4 w-4 text-muted-foreground" />
+                                                            Nenhuma ação disponível
+                                                        </DropdownMenuItem>
                                                     )}
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
