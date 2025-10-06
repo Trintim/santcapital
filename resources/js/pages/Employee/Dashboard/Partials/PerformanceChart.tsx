@@ -1,9 +1,9 @@
 import { router } from "@inertiajs/react";
-import { Area, AreaChart, CartesianGrid, Line, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { route } from "ziggy-js";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type Point = {
@@ -31,8 +31,32 @@ const chartConfig = {
 export function PerformanceChart({ series, range, dimension }: Props) {
     const onRangeChange = (r: Props["range"]) => {
         if (r === range) return;
-        router.get(route("admin.dashboard"), { range: r }, { preserveState: true, preserveScroll: true });
+        router.get(route("employee.dashboard"), { range: r }, { preserveState: true, preserveScroll: true });
     };
+
+    const filteredData = series.filter((item) => {
+        const date = new Date(item.label);
+        //hoje
+        const referenceDate = new Date();
+
+        let daysToSubtract = 365;
+
+        if (range === "12m") {
+            daysToSubtract = 365;
+        } else if (range === "9m") {
+            daysToSubtract = 270;
+        } else if (range === "3m") {
+            daysToSubtract = 90;
+        } else if (range === "7d") {
+            daysToSubtract = 7;
+        }
+
+        const startDate = new Date(referenceDate);
+
+        startDate.setDate(startDate.getDate() - daysToSubtract);
+
+        return date >= startDate;
+    });
 
     return (
         <Card className="pt-0">
@@ -67,25 +91,55 @@ export function PerformanceChart({ series, range, dimension }: Props) {
 
             <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
                 <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
-                    <AreaChart margin={{ top: 10, right: 20, left: 0, bottom: 0 }} data={series}>
+                    <AreaChart accessibilityLayer data={filteredData}>
+                        <CartesianGrid vertical={false} />
+
+                        <XAxis
+                            dataKey="label"
+                            tickLine={false}
+                            axisLine={false}
+                            tickMargin={8}
+                            minTickGap={32}
+                            tickFormatter={(value) => {
+                                const date = new Date(value);
+                                // return day = 23 Mai 2025, se nao Mai 2025 ...
+                                return dimension.mode === "day"
+                                    ? date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "2-digit" })
+                                    : date.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" });
+                            }}
+                        />
+
+                        <ChartTooltip
+                            cursor={false}
+                            content={
+                                <ChartTooltipContent
+                                    labelFormatter={(label) => {
+                                        const date = new Date(label);
+                                        return dimension.mode === "day"
+                                            ? date.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })
+                                            : date.toLocaleDateString("pt-BR", { year: "numeric", month: "short", day: "numeric" });
+                                    }}
+                                    indicator="dot"
+                                />
+                            }
+                        />
+
                         <defs>
                             {/* IDs e cores alinhados ao chartConfig */}
                             <linearGradient id="fillDeposits" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="var(--color-deposits)" stopOpacity={0.5} />
-                                <stop offset="95%" stopColor="var(--color-deposits)" stopOpacity={0.05} />
+                                <stop offset="5%" stopColor="var(--color-deposits)" stopOpacity={0.8} />
+                                <stop offset="95%" stopColor="var(--color-deposits)" stopOpacity={0.1} />
                             </linearGradient>
                             <linearGradient id="fillYields" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="var(--color-yields)" stopOpacity={0.5} />
-                                <stop offset="95%" stopColor="var(--color-yields)" stopOpacity={0.05} />
+                                <stop offset="5%" stopColor="var(--color-yields)" stopOpacity={0.8} />
+                                <stop offset="95%" stopColor="var(--color-yields)" stopOpacity={0.1} />
                             </linearGradient>
                             <linearGradient id="fillWithdraws" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="var(--color-withdraws)" stopOpacity={0.45} />
-                                <stop offset="95%" stopColor="var(--color-withdraws)" stopOpacity={0.03} />
+                                <stop offset="5%" stopColor="var(--color-withdraws)" stopOpacity={0.8} />
+                                <stop offset="95%" stopColor="var(--color-withdraws)" stopOpacity={0.1} />
                             </linearGradient>
                         </defs>
 
-                        <CartesianGrid vertical={false} strokeOpacity={0.15} />
-                        <XAxis strokeLinecap={"round"} dataKey="label" tickLine={false} axisLine={false} tickMargin={8} minTickGap={32} />
                         <YAxis
                             width={90}
                             tickFormatter={(v: number) => `R$ ${v.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}`}
@@ -95,29 +149,9 @@ export function PerformanceChart({ series, range, dimension }: Props) {
                             minTickGap={16}
                         />
 
-                        <ChartTooltip
-                            cursor={false}
-                            content={
-                                <ChartTooltipContent
-                                    indicator="dot"
-                                    labelFormatter={(label) => {
-                                        const date = new Date(label);
-                                        return dimension.mode === "day"
-                                            ? date.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })
-                                            : date.toLocaleDateString("pt-BR", { year: "numeric", month: "short", day: "numeric" });
-                                    }}
-                                />
-                            }
-                        />
-
-                        {/* 3) dataKey, stroke/fill usando as vars do config */}
-                        <Area dataKey="deposits" name="Aportes" type="natural" fill="url(#fillDeposits)" stroke="var(--color-deposits)" />
-                        <Area dataKey="yields" name="Rendimentos" type="natural" fill="url(#fillYields)" stroke="var(--color-yields)" />
-                        <Area dataKey="withdraws" name="Saques" type="natural" fill="url(#fillWithdraws)" stroke="var(--color-withdraws)" />
-
-                        {/* Linha de destaque também com a var correspondente */}
-                        <Line dataKey="net" name="Fluxo líquido" type="monotone" stroke="var(--color-net)" strokeWidth={3} dot={{ r: 2.5 }} />
-                        <ChartLegend content={<ChartLegendContent />} />
+                        <Area dataKey="deposits" type="natural" fill="url(#fillDeposits)" stroke="var(--color-deposits)" />
+                        <Area dataKey="yields" type="natural" fill="url(#fillYields)" stroke="var(--color-yields)" />
+                        <Area dataKey="withdraws" type="natural" fill="url(#fillWithdraws)" stroke="var(--color-withdraws)" />
                     </AreaChart>
                 </ChartContainer>
             </CardContent>

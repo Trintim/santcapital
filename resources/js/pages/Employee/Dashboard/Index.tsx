@@ -4,7 +4,7 @@ import { route } from "ziggy-js";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PerformanceChart } from "@/pages/Admin/Dashboard/Partials/PerformanceChart";
+import { PerformanceChart } from "@/pages/Employee/Dashboard/Partials/PerformanceChart";
 
 type KPI = {
     activeCustomers: number;
@@ -31,7 +31,7 @@ type Props = {
 export default function DashboardIndex({ kpis, series, range, dimension }: Props) {
     const onRangeChange = (value: Props["range"]) => {
         if (value === range) return;
-        router.get(route("admin.dashboard"), { range: value }, { preserveState: true, preserveScroll: true });
+        router.get(route("employee.dashboard"), { range: value }, { preserveState: true, preserveScroll: true });
     };
 
     return (

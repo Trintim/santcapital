@@ -57,7 +57,7 @@ class DashboardController extends Controller
             $rows = DB::table('money_transactions as t')
                 ->selectRaw("
                     DATE(t.effective_date) as k,
-                    DATE_FORMAT(t.effective_date, '%d/%m') as label,
+                    DATE_FORMAT(t.effective_date, '%Y/%m/%d') as label,
                     COALESCE(SUM(CASE WHEN t.type = ? THEN t.amount END), 0) AS deposits,
                     COALESCE(SUM(CASE WHEN t.type = ? THEN t.amount END), 0) AS yields,
                     COALESCE(SUM(CASE WHEN t.type = ? THEN t.amount END), 0) AS withdraws
@@ -94,8 +94,8 @@ class DashboardController extends Controller
 
             $rows = DB::table('money_transactions as t')
                 ->selectRaw("
-                    DATE_FORMAT(t.effective_date, '%Y-%m') as k,
-                    DATE_FORMAT(t.effective_date, '%b/%y') as label,
+                    DATE_FORMAT(t.effective_date, '%Y-%m-01') as k,
+                    DATE_FORMAT(t.effective_date, '%Y-%m-01') as label,
                     COALESCE(SUM(CASE WHEN t.type = ? THEN t.amount END), 0) AS deposits,
                     COALESCE(SUM(CASE WHEN t.type = ? THEN t.amount END), 0) AS yields,
                     COALESCE(SUM(CASE WHEN t.type = ? THEN t.amount END), 0) AS withdraws
@@ -111,11 +111,9 @@ class DashboardController extends Controller
                 ->get();
 
             $series = $rows->map(function ($r) {
-                $label = Carbon::parse($r->k . '-01')->locale('pt_BR')->isoFormat('MMM/YY');
-
                 return [
                     'key'       => (string) $r->k,
-                    'label'     => $label,
+                    'label'     => (string) $r->label, // YYYY-MM-01
                     'deposits'  => (float) $r->deposits,
                     'withdraws' => (float) $r->withdraws,
                     'yields'    => (float) $r->yields,
