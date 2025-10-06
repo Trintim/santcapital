@@ -34,8 +34,6 @@ export function PerformanceChart({ series, range, dimension }: Props) {
         router.get(route("admin.dashboard"), { range: r }, { preserveState: true, preserveScroll: true });
     };
 
-    console.log(series);
-
     const filteredData = series.filter((item) => {
         const date = new Date(item.label);
         //hoje

@@ -1,7 +1,7 @@
 import { LucideIcon } from "lucide-react";
 import type { Config } from "ziggy-js";
 
-export type UserRole = "admin" | "employee" | "customer";
+export type UserRole = "admin" | "employee" | "customer" | null;
 
 export interface Auth {
     user: User;
@@ -29,6 +29,7 @@ export interface SharedData {
     name: string;
     quote: { message: string; author: string };
     auth: Auth;
+    theme: UserRole | null; // Pode ser "admin", "employee", "customer" ou null (nenhum usuário logado)
     ziggy: Config & { location: string };
     sidebarOpen: boolean;
 

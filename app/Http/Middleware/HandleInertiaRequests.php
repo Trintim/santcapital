@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Http\Middleware;
 
+use App\Enums\Auth\Role;
 use App\Models\User;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
@@ -55,8 +56,13 @@ class HandleInertiaRequests extends Middleware
                     'role' => $user->roles()->first()?->name,
                 ] : null,
             ],
+            'theme' => match ($user?->roles()->first()?->name) {
+                Role::Employee => 'employee',
+                Role::Customer => 'customer',
+                default        => null,
+            },
             'ziggy' => fn (): array => [
-                ...(new Ziggy())->toArray(),
+                ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
