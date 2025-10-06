@@ -20,7 +20,6 @@ import { toast } from "sonner";
 import { route } from "ziggy-js";
 
 export function DepositList({ pagination, filters }) {
-    console.log("pagination", pagination);
     const { data, setData } = useForm({
         search: filters.search || "",
         "per-page": filters["per-page"] || 15,

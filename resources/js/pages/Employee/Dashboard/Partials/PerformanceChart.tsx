@@ -95,7 +95,20 @@ export function PerformanceChart({ series, range, dimension }: Props) {
                             minTickGap={16}
                         />
 
-                        <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+                        <ChartTooltip
+                            cursor={false}
+                            content={
+                                <ChartTooltipContent
+                                    indicator="dot"
+                                    labelFormatter={(label) => {
+                                        const date = new Date(label);
+                                        return dimension.mode === "day"
+                                            ? date.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })
+                                            : date.toLocaleDateString("pt-BR", { year: "numeric", month: "short", day: "numeric" });
+                                    }}
+                                />
+                            }
+                        />
 
                         {/* 3) dataKey, stroke/fill usando as vars do config */}
                         <Area dataKey="deposits" name="Aportes" type="natural" fill="url(#fillDeposits)" stroke="var(--color-deposits)" />

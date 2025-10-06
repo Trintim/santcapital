@@ -113,7 +113,7 @@ class DashboardController extends Controller
             $series = $rows->map(function ($r) {
                 return [
                     'key'       => (string) $r->k,
-                    'label'     => (string) $r->label, // YYYY/MM
+                    'label'     => (string) $r->label, // YYYY-MM-01
                     'deposits'  => (float) $r->deposits,
                     'withdraws' => (float) $r->withdraws,
                     'yields'    => (float) $r->yields,

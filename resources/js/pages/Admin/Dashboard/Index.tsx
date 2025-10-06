@@ -86,7 +86,6 @@ export default function DashboardIndex({ kpis, series, range, dimension }: Props
                     </CardContent>
                 </Card>
             </div>
-
             {/* Gráfico */}
             <div className="mt-6">
                 <PerformanceChart series={series} range={range} dimension={dimension} />

@@ -208,13 +208,11 @@ const ChartTooltipContent = React.forwardRef<
                         !hideIndicator && (
                           <div
                             className={cn(
-                              "shrink-0 rounded-[2px] border-[--color-border] bg-[--color-bg]",
+                              "shrink-0 border border-[--color-border] bg-[--color-bg]",
                               {
-                                "h-2.5 w-2.5": indicator === "dot",
-                                "w-1": indicator === "line",
-                                "w-0 border-[1.5px] border-dashed bg-transparent":
-                                  indicator === "dashed",
-                                "my-0.5": nestLabel && indicator === "dashed",
+                                "rounded-sm h-2.5 w-2.5": indicator === "dot",
+                                "rounded-sm h-2.5 w-1": indicator === "line",
+                                "border-2 border-dashed bg-transparent w-0 h-2.5 my-0.5": indicator === "dashed",
                               }
                             )}
                             style={
@@ -228,7 +226,7 @@ const ChartTooltipContent = React.forwardRef<
                       )}
                       <div
                         className={cn(
-                          "flex flex-1 justify-between leading-none",
+                          "flex flex-1 justify-between leading-none gap-1",
                           nestLabel ? "items-end" : "items-center"
                         )}
                       >

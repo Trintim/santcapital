@@ -28,13 +28,13 @@ const chartConfig = {
     net: { label: "Fluxo líquido", color: "var(--foreground)" },
 } satisfies ChartConfig;
 
-console.log(chartConfig);
-
 export function PerformanceChart({ series, range, dimension }: Props) {
     const onRangeChange = (r: Props["range"]) => {
         if (r === range) return;
         router.get(route("admin.dashboard"), { range: r }, { preserveState: true, preserveScroll: true });
     };
+
+    console.log(series);
 
     const filteredData = series.filter((item) => {
         const date = new Date(item.label);
@@ -115,14 +115,12 @@ export function PerformanceChart({ series, range, dimension }: Props) {
                             cursor={false}
                             content={
                                 <ChartTooltipContent
-                                    labelFormatter={(value) => {
-                                        return new Date(value).toLocaleDateString("pt-BR", {
-                                            year: "numeric",
-                                            month: "short",
-                                            day: "numeric",
-                                        });
+                                    labelFormatter={(label) => {
+                                        const date = new Date(label);
+                                        return dimension.mode === "day"
+                                            ? date.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })
+                                            : date.toLocaleDateString("pt-BR", { year: "numeric", month: "short", day: "numeric" });
                                     }}
-                                    labelKey={"label"}
                                     indicator="dot"
                                 />
                             }
