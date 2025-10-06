@@ -2,17 +2,14 @@
 
 declare(strict_types = 1);
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Admin;
 
-use App\Http\Resources\Admin\CustomerPlanResource;
 use App\Models\MoneyTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * @mixin MoneyTransaction
- */
-class MoneyTransactionResource extends JsonResource
+/* @mixin MoneyTransaction */
+class WithdrawalResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
@@ -27,6 +24,8 @@ class MoneyTransactionResource extends JsonResource
             'meta'             => $this->meta,
             'created_by'       => $this->created_by,
             'approved_by'      => $this->approved_by,
+            'created_at'       => $this->created_at,
+            'updated_at'       => $this->updated_at,
             'customer_plan'    => CustomerPlanResource::make($this->whenLoaded('customerPlan')),
         ];
     }

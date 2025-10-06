@@ -17,7 +17,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useFilter } from "@/hooks/useFilter";
 import { useSort } from "@/hooks/useSort";
 import { formatCpfCnpj, formatPhoneBr } from "@/lib/utils";
-import { ClientProps } from "@/pages/Admin/Customer/types";
+import { CustomerProps } from "@/pages/Admin/Customer/types";
 import { filterQueryParams } from "@/utils";
 import { router, useForm } from "@inertiajs/react";
 import { CheckCircle2, MoreHorizontal, PlusIcon, Search, Trash2, XCircle } from "lucide-react";
@@ -25,7 +25,7 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { route } from "ziggy-js";
 
-export function CustomerList({ pagination, filters }: Readonly<ClientProps>) {
+export function CustomerList({ pagination, filters }: Readonly<CustomerProps>) {
     const { data, setData } = useForm({
         search: filters.search || "",
         "per-page": filters["per-page"] || 15,

@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Admin\MonthlyYieldResource;
 use App\Jobs\ApplyMonthlyYieldJob;
 use App\Models\InvestmentPlan;
 use App\Models\MonthlyYield;
@@ -15,11 +16,26 @@ use Inertia\Inertia;
 
 class MonthlyYieldController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $perPage = max(10, (int) $request->integer('per_page', 15));
+
+        $plans = InvestmentPlan::select(['id', 'name', 'description'])
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        $query = MonthlyYield::with('plan')
+            ->orderByDesc('period');
+
         return Inertia::render('Admin/MonthlyYields/Index', [
-            'plans'  => InvestmentPlan::select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
-            'yields' => MonthlyYield::with('plan:id,name')->orderByDesc('period')->paginate(15)->onEachSide(1)->withQueryString(),
+            'plans'   => $plans,
+            'filters' => [
+                'per_page' => $perPage,
+            ],
+            'yields' => MonthlyYieldResource::collection(
+                $query->paginate($perPage)->withQueryString()
+            ),
         ]);
     }
 

@@ -2,10 +2,10 @@
 
 import Layout from "@/layouts/app-layout";
 import { CustomerList } from "@/pages/Admin/Customer/Partials/CustomerList";
-import { ClientProps } from "@/pages/Admin/Customer/types";
+import { CustomerProps } from "@/pages/Admin/Customer/types";
 import { Head } from "@inertiajs/react";
 
-export default function Index({ pagination, filters }: ClientProps) {
+export default function Index({ pagination, filters }: CustomerProps) {
     return (
         <Layout>
             <Head title="Clientes" />

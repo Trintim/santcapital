@@ -1,6 +1,7 @@
 import { MonthYearPicker } from "@/components/form/MonthYearPicker";
 import { PercentInput, usePercentDecimal } from "@/components/form/PercentInput";
 
+import Paginate from "@/components/Pagination";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -23,7 +24,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Layout from "@/layouts/app-layout";
-import { Head, router, useForm, usePage } from "@inertiajs/react";
+import { MonthlyYieldResource } from "@/types/monthly-yield";
+import { PaginationData } from "@/types/pagination";
+import { Head, router, useForm } from "@inertiajs/react";
 import { MoreHorizontal, Trash2 } from "lucide-react";
 import * as React from "react";
 import { useRef, useState } from "react";
@@ -40,9 +43,15 @@ type YieldItem = {
     created_at: string;
 };
 
-export default function MonthlyYieldsIndex() {
-    const { plans, yields }: any = usePage().props;
-
+export default function MonthlyYieldsIndex({
+    plans,
+    yields,
+    filters,
+}: {
+    plans: Plan[];
+    yields: PaginationData<MonthlyYieldResource>;
+    filters: { plan_id?: number | string | null; per_page: number };
+}) {
     const { data, setData, post, processing, errors, reset, transform } = useForm({
         investment_plan_id: "",
         // now as "YYYY-MM-01"
@@ -50,7 +59,21 @@ export default function MonthlyYieldsIndex() {
         percent_decimal: "",
     });
 
+    const { data: filterData, setData: setFilterData } = useForm({
+        per_page: Number(filters?.per_page ?? 15),
+    });
+
+    const go = (patch: Record<string, any>) => {
+        router.get(route("admin.monthly-yields.index"), { ...filterData, ...patch }, { preserveScroll: true, preserveState: true });
+    };
+
+    const setPerPage = (pp: number) => {
+        setFilterData("per_page", pp);
+        go({ per_page: pp });
+    };
+
     const { display, setDisplay, getDecimal } = usePercentDecimal(undefined);
+
     React.useEffect(() => {
         setDisplay(data.percent_decimal);
     }, [data.percent_decimal]);
@@ -159,10 +182,8 @@ export default function MonthlyYieldsIndex() {
     return (
         <Layout>
             <Head title="Rendimentos Mensais" />
-
             <div className="space-y-6">
                 <h1 className="text-xl font-semibold">Rendimentos Mensais</h1>
-
                 {/* Formulário inline de criação */}
                 <form onSubmit={handleSubmit} className="rounded-lg border bg-card p-4">
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
@@ -208,7 +229,7 @@ export default function MonthlyYieldsIndex() {
                     </div>
                 </form>
 
-                {/* Tabela de rendimentos */}
+                {/* Tabela paginada de rendimentos */}
                 <div className="rounded-lg border bg-card">
                     <Table>
                         <TableHeader>
@@ -224,7 +245,7 @@ export default function MonthlyYieldsIndex() {
                         </TableHeader>
                         <TableBody>
                             {yields?.data?.length ? (
-                                yields.data.map((item: YieldItem) => {
+                                yields.data.map((item) => {
                                     const isOpen = menuOpenId === item.id;
                                     return (
                                         <TableRow key={item.id}>
@@ -242,7 +263,6 @@ export default function MonthlyYieldsIndex() {
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
                                                         <DropdownMenuLabel>Ações</DropdownMenuLabel>
-
                                                         <DropdownMenuItem
                                                             onSelect={(e) => {
                                                                 e.preventDefault();
@@ -251,9 +271,7 @@ export default function MonthlyYieldsIndex() {
                                                         >
                                                             Aplicar rendimento
                                                         </DropdownMenuItem>
-
                                                         <DropdownMenuSeparator />
-
                                                         <DropdownMenuItem
                                                             className="text-red-600 focus:text-red-600"
                                                             onSelect={(e) => {
@@ -279,6 +297,7 @@ export default function MonthlyYieldsIndex() {
                             )}
                         </TableBody>
                     </Table>
+                    <Paginate meta={yields.meta} perPage={filterData.per_page} setPerPage={setPerPage} />
                 </div>
             </div>
 

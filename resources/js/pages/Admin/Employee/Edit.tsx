@@ -27,6 +27,8 @@ export default function Edit({ employee }) {
         },
     });
 
+    console.log(employee);
+
     function submit(e: FormEvent) {
         e.preventDefault();
         put(route("admin.employees.update", { employee: employee.id }), {

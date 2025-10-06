@@ -5,4 +5,5 @@ export interface EmployeeResource {
     phone?: string;
     document?: string;
     is_active: boolean;
+    additional?: any;
 }

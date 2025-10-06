@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Http\Controllers\Admin; // duplique para Employee mudando o namespace
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Admin\WithdrawalResource;
 use App\Models\MoneyTransaction;
 use App\Support\Balances; // o helper que centraliza o saldo disponível
 use Illuminate\Http\RedirectResponse;
@@ -21,7 +22,7 @@ class WithdrawalController extends Controller
         $perPage = max(10, (int) $request->integer('per_page', 15));
 
         $query = MoneyTransaction::query()
-            ->with(['customerPlan.plan:id,name', 'customerPlan.customer:id,name,email'])
+            ->with(['customerPlan.plan', 'customerPlan.customer'])
             ->where('type', MoneyTransaction::TYPE_WITHDRAWAL)
             ->when($status, fn ($q) => $q->where('status', $status))
             ->orderByDesc('effective_date')
@@ -32,7 +33,9 @@ class WithdrawalController extends Controller
                 'status'   => $status,
                 'per_page' => $perPage,
             ],
-            'withdrawals' => $query->paginate($perPage)->withQueryString(),
+            'withdrawals' => WithdrawalResource::collection(
+                $query->paginate($perPage)->withQueryString()
+            ),
         ]);
     }
 

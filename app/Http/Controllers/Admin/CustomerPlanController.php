@@ -8,7 +8,7 @@ use App\Enums\Auth\Role;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CustomerPlan\IndexRequest;
 use App\Http\Requests\StoreCustomerPlanRequest;
-use App\Http\Resources\CustomerPlanResource;
+use App\Http\Resources\Admin\CustomerPlanResource;
 use App\Models\CustomerPlan;
 use App\Models\InvestmentPlan;
 use App\Models\User;

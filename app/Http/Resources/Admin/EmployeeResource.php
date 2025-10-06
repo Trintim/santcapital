@@ -15,12 +15,13 @@ class EmployeeResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'         => $this->id,
-            'name'       => $this->name,
-            'email'      => $this->email,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-            'additional' => EmployeeAdditionalInformationResource::make($this->whenLoaded('employeeAdditionalInformation')),
+            'id'                              => $this->id,
+            'name'                            => $this->name,
+            'email'                           => $this->email,
+            'phone'                           => $this->phone,
+            'document'                        => $this->document,
+            'is_active'                       => $this->is_active,
+            'employee_additional_information' => EmployeeAdditionalInformationResource::make($this->whenLoaded('employeeAdditionalInformation')),
         ];
     }
 }

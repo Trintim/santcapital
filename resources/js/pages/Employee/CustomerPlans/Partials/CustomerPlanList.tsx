@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useFilter } from "@/hooks/useFilter";
 import { useSort } from "@/hooks/useSort";
+import { CustomerPlanResource } from "@/types/customer-plan";
+import { PaginationData } from "@/types/pagination";
 import { filterQueryParams } from "@/utils";
 import { router, useForm } from "@inertiajs/react";
 import { Bolt, MoreHorizontal, PlusIcon, Search } from "lucide-react";
@@ -20,7 +22,12 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { route } from "ziggy-js";
 
-export function CustomerPlanList({ pagination, filters }) {
+interface Props {
+    pagination: PaginationData<CustomerPlanResource>;
+    filters: any;
+}
+
+export function CustomerPlanList({ pagination, filters }: Props) {
     const { data, setData } = useForm({
         search: filters.search || "",
         "per-page": filters["per-page"] || 15,

@@ -2,10 +2,8 @@
 
 declare(strict_types = 1);
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Admin;
 
-use App\Http\Resources\Admin\ClientResource;
-use App\Http\Resources\Admin\PlanResource;
 use App\Models\CustomerPlan;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -22,7 +20,7 @@ class CustomerPlanResource extends JsonResource
             'status'             => $this->status,
             'activated_on'       => $this->activated_on,
             'chosen_lockup_days' => $this->chosen_lockup_days,
-            'customer'           => ClientResource::make($this->whenLoaded('customer')),
+            'customer'           => CustomerResource::make($this->whenLoaded('customer')),
             'plan'               => PlanResource::make($this->whenLoaded('plan')),
         ];
     }

@@ -117,7 +117,6 @@ export default function Edit({ customer }) {
                                     <Label htmlFor="beneficiary_name">Beneficiário 1 — Nome</Label>
                                     <Input
                                         id="beneficiary_name"
-                                        className="w-full rounded-md border bg-background px-3 py-2 text-sm"
                                         value={data.additional.beneficiary_name}
                                         onChange={(e) =>
                                             setData("additional", {
@@ -162,9 +161,8 @@ export default function Edit({ customer }) {
                             <div className="grid gap-4 md:grid-cols-3">
                                 <div>
                                     <Label htmlFor="beneficiary_2_name">Beneficiário 2 — Nome</Label>
-                                    <input
+                                    <Input
                                         id="beneficiary_2_name"
-                                        className="w-full rounded-md border bg-background px-3 py-2 text-sm"
                                         value={data.additional.beneficiary_2_name}
                                         onChange={(e) =>
                                             setData("additional", {

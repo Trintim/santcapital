@@ -107,7 +107,7 @@ class EmployeeController extends Controller
     public function edit(User $employee)
     {
         return Inertia::render('Admin/Employee/Edit', [
-            'employee' => EmployeeResource::make($employee->load('employeeAdditionalInformation')),
+            'employee' => EmployeeResource::make($employee->load(['employeeAdditionalInformation'])),
         ]);
     }
 
