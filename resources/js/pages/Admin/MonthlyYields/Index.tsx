@@ -23,7 +23,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import Layout from "@/layouts/app-layout";
+import AppLayout from "@/layouts/app-layout";
 import { MonthlyYieldResource } from "@/types/monthly-yield";
 import { PaginationData } from "@/types/pagination";
 import { Head, router, useForm } from "@inertiajs/react";
@@ -52,25 +52,23 @@ export default function MonthlyYieldsIndex({
     yields: PaginationData<MonthlyYieldResource>;
     filters: { plan_id?: number | string | null; per_page: number };
 }) {
+    const { data: filterData, setData: setFilterData } = useForm({
+        per_page: Number(filters?.per_page ?? 15),
+    });
+    const go = (patch: Record<string, any>) => {
+        router.get(route("admin.monthly-yields.index"), { ...filterData, ...patch }, { preserveScroll: true, preserveState: true });
+    };
+    const setPerPage = (pp: number) => {
+        setFilterData("per_page", pp);
+        go({ per_page: pp });
+    };
+
     const { data, setData, post, processing, errors, reset, transform } = useForm({
         investment_plan_id: "",
         // now as "YYYY-MM-01"
         period: new Date().toISOString().slice(0, 7),
         percent_decimal: "",
     });
-
-    const { data: filterData, setData: setFilterData } = useForm({
-        per_page: Number(filters?.per_page ?? 15),
-    });
-
-    const go = (patch: Record<string, any>) => {
-        router.get(route("admin.monthly-yields.index"), { ...filterData, ...patch }, { preserveScroll: true, preserveState: true });
-    };
-
-    const setPerPage = (pp: number) => {
-        setFilterData("per_page", pp);
-        go({ per_page: pp });
-    };
 
     const { display, setDisplay, getDecimal } = usePercentDecimal(undefined);
 
@@ -180,12 +178,14 @@ export default function MonthlyYieldsIndex({
     }
 
     return (
-        <Layout>
+        <AppLayout>
             <Head title="Rendimentos Mensais" />
-            <div className="space-y-6">
-                <h1 className="text-xl font-semibold">Rendimentos Mensais</h1>
-                {/* Formulário inline de criação */}
-                <form onSubmit={handleSubmit} className="rounded-lg border bg-card p-4">
+            <div className="rounded-xl bg-accent px-3 pt-4">
+                <div className="mb-2 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+                    <h1 className="text-lg font-bold">Rendimentos Mensais</h1>
+                </div>
+
+                <form onSubmit={handleSubmit} className="mb-4 rounded-lg border bg-card p-4">
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
                         <div className="sm:col-span-2">
                             <label className="mb-1 block text-sm font-medium">Plano</label>
@@ -228,9 +228,8 @@ export default function MonthlyYieldsIndex({
                         </Button>
                     </div>
                 </form>
-
                 {/* Tabela paginada de rendimentos */}
-                <div className="rounded-lg border bg-card">
+                <div className="mb-4 rounded-lg">
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -238,7 +237,7 @@ export default function MonthlyYieldsIndex({
                                 <TableHead>Plano</TableHead>
                                 <TableHead>Mês</TableHead>
                                 <TableHead>Percentual</TableHead>
-                                <TableHead>
+                                <TableHead className="text-right">
                                     <span className="sr-only">Ações</span>
                                 </TableHead>
                             </TableRow>
@@ -248,9 +247,9 @@ export default function MonthlyYieldsIndex({
                                 yields.data.map((item) => {
                                     const isOpen = menuOpenId === item.id;
                                     return (
-                                        <TableRow key={item.id}>
+                                        <TableRow key={item.id} className="hover:!bg-secondary/10">
                                             <TableCell>{item.id}</TableCell>
-                                            <TableCell>{item.plan?.name ?? "—"}</TableCell>
+                                            <TableCell className="max-w-48 truncate">{item.plan?.name ?? "—"}</TableCell>
                                             <TableCell>{formatMonthLabel(item.period)}</TableCell>
                                             <TableCell>{fmtPct(item?.percent_decimal)}</TableCell>
                                             <TableCell className="text-right">
@@ -345,6 +344,6 @@ export default function MonthlyYieldsIndex({
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </Layout>
+        </AppLayout>
     );
 }
