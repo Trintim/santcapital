@@ -51,7 +51,7 @@ export default function AuthSimpleLayout({ children, title, description }: AuthL
 
             <div className="relative z-10 flex items-center justify-center pt-20 md:pt-32">
                 <Link href={"/"} className="flex items-center gap-2">
-                    <LogoIcon className="w-50 fill-current text-white" />
+                    <LogoIcon className="w-50" />
                 </Link>
             </div>
 

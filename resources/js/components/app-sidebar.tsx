@@ -3,7 +3,8 @@ import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton,
 import { type NavItem, type SharedData } from "@/types";
 import { Link, usePage } from "@inertiajs/react";
 import { ChartCandlestickIcon, HandCoinsIcon, HomeIcon, TagIcon, UserPenIcon, UserRoundCheckIcon, UsersIcon } from "lucide-react";
-import AppLogo from "./app-logo";
+import LogoAzul from "./logo-azul";
+import LogoBranca from "./logo-branca";
 
 const mainNavItems: NavItem[] = [
     {
@@ -93,9 +94,9 @@ export function AppSidebar() {
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
-                            <Link href={route("admin.dashboard")} prefetch>
-                                <AppLogo />
+                        <SidebarMenuButton size="lg" asChild className={"flex items-center justify-center"}>
+                            <Link href={"/"} prefetch>
+                                {authUserRole === "admin" ? <LogoAzul className="size-32" /> : <LogoBranca className="size-32" />}
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>

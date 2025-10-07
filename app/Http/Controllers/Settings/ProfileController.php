@@ -19,7 +19,7 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
-        $user       = $request->user()->load(['customerAdditionalInformation', 'employeeAdditionalInformation', 'roles']);
+        $user       = auth()->user()->load(['customerAdditionalInformation', 'employeeAdditionalInformation', 'roles']);
         $role       = $user->roles->first()?->name->value ?? 'admin';
         $additional = null;
 
