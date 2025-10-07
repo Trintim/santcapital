@@ -1,23 +1,23 @@
-import { useForm } from '@inertiajs/react';
-import { FormEventHandler, useRef } from 'react';
+import { useForm } from "@inertiajs/react";
+import { FormEventHandler, useRef } from "react";
 
-import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import InputError from "@/components/input-error";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-import HeadingSmall from '@/components/heading-small';
+import HeadingSmall from "@/components/heading-small";
 
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export default function DeleteUser() {
     const passwordInput = useRef<HTMLInputElement>(null);
-    const { data, setData, delete: destroy, processing, reset, errors, clearErrors } = useForm<Required<{ password: string }>>({ password: '' });
+    const { data, setData, delete: destroy, processing, reset, errors, clearErrors } = useForm<Required<{ password: string }>>({ password: "" });
 
     const deleteUser: FormEventHandler = (e) => {
         e.preventDefault();
 
-        destroy(route('profile.destroy'), {
+        destroy(route("profile.destroy"), {
             preserveScroll: true,
             onSuccess: () => closeModal(),
             onError: () => passwordInput.current?.focus(),
@@ -31,53 +31,41 @@ export default function DeleteUser() {
     };
 
     return (
-        <div className="space-y-6">
-            <HeadingSmall title="Delete account" description="Delete your account and all of its resources" />
+        <div className="mt-4 space-y-6">
+            <HeadingSmall title="Excluir conta" description="Exclua sua conta e todos os seus dados permanentemente." />
             <div className="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10">
-                <div className="relative space-y-0.5 text-red-600 dark:text-red-100">
-                    <p className="font-medium">Warning</p>
-                    <p className="text-sm">Please proceed with caution, this cannot be undone.</p>
-                </div>
-
+                <p className="text-sm text-red-700 dark:text-red-300">
+                    Tem certeza que deseja excluir sua conta? Esta ação é irreversível e todos os seus dados serão apagados.
+                </p>
                 <Dialog>
                     <DialogTrigger asChild>
-                        <Button variant="destructive">Delete account</Button>
+                        <Button variant="destructive">Excluir conta</Button>
                     </DialogTrigger>
                     <DialogContent>
-                        <DialogTitle>Are you sure you want to delete your account?</DialogTitle>
-                        <DialogDescription>
-                            Once your account is deleted, all of its resources and data will also be permanently deleted. Please enter your password
-                            to confirm you would like to permanently delete your account.
-                        </DialogDescription>
-                        <form className="space-y-6" onSubmit={deleteUser}>
-                            <div className="grid gap-2">
-                                <Label htmlFor="password" className="sr-only">
-                                    Password
-                                </Label>
-
+                        <DialogTitle>Confirmar exclusão</DialogTitle>
+                        <DialogDescription>Digite sua senha para confirmar a exclusão da conta. Esta ação não poderá ser desfeita.</DialogDescription>
+                        <form onSubmit={deleteUser} className="space-y-4">
+                            <div>
+                                <Label htmlFor="password">Senha</Label>
                                 <Input
                                     id="password"
                                     type="password"
-                                    name="password"
                                     ref={passwordInput}
                                     value={data.password}
-                                    onChange={(e) => setData('password', e.target.value)}
-                                    placeholder="Password"
+                                    onChange={(e) => setData("password", e.target.value)}
                                     autoComplete="current-password"
+                                    placeholder="Digite sua senha"
                                 />
-
-                                <InputError message={errors.password} />
+                                <InputError className="mt-1" message={errors.password} />
                             </div>
-
-                            <DialogFooter className="gap-2">
+                            <DialogFooter>
                                 <DialogClose asChild>
-                                    <Button variant="secondary" onClick={closeModal}>
-                                        Cancel
+                                    <Button type="button" variant="outline" onClick={closeModal}>
+                                        Cancelar
                                     </Button>
                                 </DialogClose>
-
-                                <Button variant="destructive" disabled={processing} asChild>
-                                    <button type="submit">Delete account</button>
+                                <Button variant="destructive" disabled={processing} type="submit">
+                                    Excluir definitivamente
                                 </Button>
                             </DialogFooter>
                         </form>

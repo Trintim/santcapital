@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,9 +19,20 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        $user       = $request->user()->load(['customerAdditionalInformation', 'employeeAdditionalInformation', 'roles']);
+        $role       = $user->roles->first()?->name->value ?? 'admin';
+        $additional = null;
+
+        if ($role === 'customer') {
+            $additional = $user->customerAdditionalInformation;
+        } elseif ($role === 'employee') {
+            $additional = $user->employeeAdditionalInformation;
+        }
+
         return Inertia::render('settings/profile', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
-            'status'          => $request->session()->get('status'),
+            'user'       => $user->only(['id', 'name', 'email', 'phone', 'document', 'birthdate', 'pix_key']),
+            'role'       => $role,
+            'additional' => $additional,
         ]);
     }
 
@@ -31,13 +41,36 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user()->load(['customerAdditionalInformation', 'employeeAdditionalInformation', 'roles']);
+        $role = $user->roles->first()?->name ?? 'admin';
+        $user->fill($request->validated());
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        $user->save();
+
+        // Atualiza informações adicionais conforme o tipo
+        if ($role === 'customer' && $user->customerAdditionalInformation) {
+            $user->customerAdditionalInformation->fill($request->only([
+                'beneficiary_name',
+                'beneficiary_document',
+                'beneficiary_phone',
+                'beneficiary_2_name',
+                'beneficiary_2_document',
+                'beneficiary_2_phone',
+            ]));
+            $user->customerAdditionalInformation->save();
+        } elseif ($role === 'employee' && $user->employeeAdditionalInformation) {
+            $user->employeeAdditionalInformation->fill($request->only([
+                'bank_name',
+                'bank_code',
+                'agency_number',
+                'account_number',
+            ]));
+            $user->employeeAdditionalInformation->save();
+        }
 
         return to_route('profile.edit');
     }
