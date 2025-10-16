@@ -6,8 +6,12 @@ namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
 use App\Models\MoneyTransaction;
+use App\Notifications\WithdrawalApprovedNotification;
+use App\Notifications\WithdrawalRejectedNotification;
+use App\Support\Balances;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -16,7 +20,7 @@ class WithdrawalController extends Controller
     public function index(Request $request): Response
     {
         $status  = $request->string('status', 'pending'); // pending|approved|rejected
-        $perPage = max(10, (int) $request->integer('per_page', 15));
+        $perPage = max(10, $request->integer('per_page', 15));
 
         $query = MoneyTransaction::query()
             ->with(['customerPlan.plan:id,name', 'customerPlan.customer:id,name,email'])
@@ -58,7 +62,7 @@ class WithdrawalController extends Controller
 
             // Notificar cliente
             optional($transaction->customerPlan?->customer)->notify(
-                new \App\Notifications\WithdrawalApprovedNotification($transaction)
+                new WithdrawalApprovedNotification($transaction)
             );
 
             return back()->with('success', 'Saque aprovado.');
@@ -79,9 +83,8 @@ class WithdrawalController extends Controller
             'meta'        => array_merge((array) $transaction->meta, ['reject_reason' => $reason]),
         ]);
 
-        // Notificar cliente
         optional($transaction->customerPlan?->customer)->notify(
-            new \App\Notifications\WithdrawalRejectedNotification($transaction, $reason)
+            new WithdrawalRejectedNotification($transaction, $reason)
         );
 
         return back()->with('success', 'Saque rejeitado.');

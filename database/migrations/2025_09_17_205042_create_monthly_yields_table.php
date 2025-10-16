@@ -16,7 +16,7 @@ return new class () extends Migration
         Schema::create('monthly_yields', function (Blueprint $table) {
             $table->id();
             $table->foreignId('investment_plan_id')->constrained('investment_plans')->cascadeOnDelete();
-            $table->timestamp('period'); // armazena o primeiro dia do mês (YYYY-MM-01)
+            $table->date('period'); // armazena o primeiro dia do mês (YYYY-MM-01)
             $table->decimal('percent_decimal', 6, 4); // 0.012 = 1,2%
             $table->foreignId('recorded_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();

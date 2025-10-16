@@ -34,7 +34,7 @@ export function CustomerPlanList({ pagination, filters }: Props) {
     });
 
     const { handleDebounceFilter } = useFilter({
-        path: route("admin.customer-plans.index"),
+        path: route("employee.customer-plans.index"),
         initialData: data,
         onDataChange: setData,
     });
@@ -47,7 +47,7 @@ export function CustomerPlanList({ pagination, filters }: Props) {
     const handlePerPage = (perPage: number) => {
         const updatedData = { ...data, "per-page": perPage };
         setData(updatedData);
-        router.get(route("admin.customer-plans.index"), filterQueryParams(updatedData), {
+        router.get(route("employee.customer-plans.index"), filterQueryParams(updatedData), {
             preserveState: true,
             preserveScroll: true,
         });
@@ -56,7 +56,7 @@ export function CustomerPlanList({ pagination, filters }: Props) {
     const handleOnSort = (key: string) => {
         const newSort = handleSort(key);
         const query = { ...data, ...newSort };
-        router.get(route("admin.customer-plans.index"), filterQueryParams(query), {
+        router.get(route("employee.customer-plans.index"), filterQueryParams(query), {
             preserveState: true,
             preserveScroll: true,
         });
@@ -84,7 +84,12 @@ export function CustomerPlanList({ pagination, filters }: Props) {
                         className="w-full sm:max-w-sm"
                     />
 
-                    <Button type="button" size={"sm"} className="cursor-pointer" onClick={() => router.visit(route("admin.customer-plans.create"))}>
+                    <Button
+                        type="button"
+                        size={"sm"}
+                        className="cursor-pointer"
+                        onClick={() => router.visit(route("employee.customer-plans.create"))}
+                    >
                         <span className="text-xs">Vincular plano</span>
                         <PlusIcon className="size-4" />
                     </Button>
@@ -158,7 +163,7 @@ export function CustomerPlanList({ pagination, filters }: Props) {
                                                                     setMenuOpenId(null);
                                                                     (document.activeElement as HTMLElement | null)?.blur?.();
                                                                     router.post(
-                                                                        route("admin.customer-plans.activate", { customerPlan: cp.id }),
+                                                                        route("employee.customer-plans.activate", { customerPlan: cp.id }),
                                                                         {},
                                                                         {
                                                                             preserveState: true,

@@ -1,7 +1,7 @@
 import { MonthYearPicker } from "@/components/form/MonthYearPicker";
 import { PercentInput, usePercentDecimal } from "@/components/form/PercentInput";
 
-import Paginate from "@/components/Pagination";
+import Paginate from "@/components/Pagination/Index";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -38,7 +38,7 @@ type YieldItem = {
     id: number;
     investment_plan_id: number;
     plan?: { id: number; name: string };
-    period: string; // "YYYY-MM-01"
+    period: string; // "YYYY-MM-01" (ou DATETIME no ISO)
     percent_decimal: number; // 0.025
     created_at: string;
 };
@@ -65,13 +65,12 @@ export default function MonthlyYieldsIndex({
 
     const { data, setData, post, processing, errors, reset, transform } = useForm({
         investment_plan_id: "",
-        // now as "YYYY-MM-01"
+        // controla no picker como "YYYY-MM"
         period: new Date().toISOString().slice(0, 7),
         percent_decimal: "",
     });
 
     const { display, setDisplay, getDecimal } = usePercentDecimal(undefined);
-
     React.useEffect(() => {
         setDisplay(data.percent_decimal);
     }, [data.percent_decimal]);
@@ -80,14 +79,15 @@ export default function MonthlyYieldsIndex({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-
         if (!data.investment_plan_id) return;
         if (!/^\d{4}-\d{2}$/.test(data.period)) return;
 
         const dec = getDecimal(); // "2,50" => 0.025
+
+        // 👉 envia sempre YYYY-MM-01
         transform((payload) => ({
             investment_plan_id: payload.investment_plan_id,
-            period: payload.period,
+            period: `${payload.period}-01`,
             percent_decimal: dec,
         }));
 
@@ -106,13 +106,12 @@ export default function MonthlyYieldsIndex({
     // ===== Dropdown controlado por linha =====
     const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
 
-    // ===== Delete dialog (controle de foco seguro) =====
+    // ===== Delete dialog =====
     const [confirmOpen, setConfirmOpen] = React.useState(false);
     const [toDelete, setToDelete] = React.useState<{ id: number; label: string } | null>(null);
     const deleteCancelRef = useRef<HTMLButtonElement | null>(null);
 
     const openDelete = (item: YieldItem) => {
-        // fecha menu, desfoca trigger e abre dialog no próximo frame
         setMenuOpenId(null);
         (document.activeElement as HTMLElement | null)?.blur?.();
         setToDelete({ id: item.id, label: `${item.plan?.name ?? "Plano"} — ${formatMonthLabel(item.period)}` });
@@ -129,7 +128,7 @@ export default function MonthlyYieldsIndex({
         });
     };
 
-    // ===== Apply dialog (controle de foco seguro) =====
+    // ===== Apply dialog =====
     const [applyOpen, setApplyOpen] = React.useState(false);
     const [toApply, setToApply] = React.useState<{ planId: number; period: string; label: string } | null>(null);
     const applyCancelRef = useRef<HTMLButtonElement | null>(null);
@@ -139,7 +138,7 @@ export default function MonthlyYieldsIndex({
         (document.activeElement as HTMLElement | null)?.blur?.();
         setToApply({
             planId: item.investment_plan_id,
-            period: item.period,
+            period: normalizeToStartOfMonth(item.period), // garante "YYYY-MM-01"
             label: `${item.plan?.name ?? "Plano"} — ${formatMonthLabel(item.period)}`,
         });
         requestAnimationFrame(() => setApplyOpen(true));
@@ -151,7 +150,7 @@ export default function MonthlyYieldsIndex({
             route("admin.monthly-yields.apply"),
             {
                 investment_plan_id: toApply.planId,
-                period: toApply.period,
+                period: toApply.period, // já "YYYY-MM-01"
             },
             {
                 preserveState: true,
@@ -172,9 +171,20 @@ export default function MonthlyYieldsIndex({
             : "—";
     };
 
+    function normalizeToStartOfMonth(p: string) {
+        // aceita "YYYY-MM" ou "YYYY-MM-DD" e retorna "YYYY-MM-01"
+        if (/^\d{4}-\d{2}$/.test(p)) return `${p}-01`;
+        if (/^\d{4}-\d{2}-\d{2}$/.test(p)) return `${p.slice(0, 7)}-01`;
+        // fallback: tenta new Date()
+        const d = new Date(p);
+        if (!isNaN(d.getTime())) return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+        return p; // deixa como veio
+    }
+
     function formatMonthLabel(period: string) {
-        const [year, month] = period.split("-").map(Number);
-        return new Date(year, month - 1).toLocaleDateString("pt-BR", { year: "numeric", month: "2-digit" });
+        // aceita "YYYY-MM" ou "YYYY-MM-DD"
+        const [y, m] = normalizeToStartOfMonth(period).split("-").map(Number);
+        return new Date(y, (m ?? 1) - 1).toLocaleDateString("pt-BR", { year: "numeric", month: "2-digit" });
     }
 
     return (
@@ -228,7 +238,7 @@ export default function MonthlyYieldsIndex({
                         </Button>
                     </div>
                 </form>
-                {/* Tabela paginada de rendimentos */}
+
                 <div className="mb-4 rounded-lg">
                     <Table>
                         <TableHeader>
