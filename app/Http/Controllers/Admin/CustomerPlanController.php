@@ -104,7 +104,6 @@ class CustomerPlanController extends Controller
             ->exists();
 
         if ($hasApproved) {
-
             return back()->withErrors([
                 'customer_plan' => 'Não é possível remover: existem transações aprovadas neste vínculo.',
             ]);

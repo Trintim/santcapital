@@ -4,12 +4,12 @@ declare(strict_types = 1);
 
 namespace Database\Seeders;
 
+use App\Enums\Auth\Role as RoleEnum;
 use App\Models\CustomerPlan;
 use App\Models\InvestmentPlan;
 use App\Models\MoneyTransaction;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use App\Enums\Auth\Role as RoleEnum;
 use Illuminate\Support\Facades\DB;
 
 class CustomerPlanSeeder extends Seeder

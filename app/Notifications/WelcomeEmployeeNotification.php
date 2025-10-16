@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
@@ -13,7 +15,8 @@ class WelcomeEmployeeNotification extends Notification implements ShouldQueue
 
     public function __construct(
         public readonly string $password
-    ) {}
+    ) {
+    }
 
     public function via(object $notifiable): array
     {
@@ -25,7 +28,7 @@ class WelcomeEmployeeNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
+        return (new MailMessage())
             ->subject('Bem-vindo(a) à equipe ' . config('app.name') . '!')
             ->markdown('mail.welcome-employee', [
                 'name'          => $notifiable->name,

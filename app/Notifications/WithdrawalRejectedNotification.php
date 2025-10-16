@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace App\Notifications;
 
 use App\Models\MoneyTransaction;
@@ -12,7 +14,9 @@ class WithdrawalRejectedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public MoneyTransaction $tx, public ?string $reason = null) {}
+    public function __construct(public MoneyTransaction $tx, public ?string $reason = null)
+    {
+    }
 
     public function via($notifiable): array
     {
@@ -23,7 +27,7 @@ class WithdrawalRejectedNotification extends Notification implements ShouldQueue
     {
         $valor = number_format($this->tx->amount, 2, ',', '.');
 
-        $mail = (new MailMessage)
+        $mail = (new MailMessage())
             ->subject('Seu saque foi rejeitado')
             ->line("Seu pedido de saque de R$ {$valor} foi rejeitado.");
 

@@ -6,7 +6,6 @@ namespace App\Support;
 
 use App\Models\MoneyTransaction;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class Balances

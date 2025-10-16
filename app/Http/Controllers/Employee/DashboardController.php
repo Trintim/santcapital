@@ -8,9 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CustomerPlan;
 use App\Models\MoneyTransaction;
 use App\Models\MonthlyYield;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Number;
 use Inertia\Inertia;
 use Inertia\Response;
 

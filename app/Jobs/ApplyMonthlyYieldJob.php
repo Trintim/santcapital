@@ -17,14 +17,18 @@ use Illuminate\Support\Facades\DB;
 
 class ApplyMonthlyYieldJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     public int $tries = 3;
 
     public function __construct(
         public int $investmentPlanId,
         public string $period // 'YYYY-MM'
-    ) {}
+    ) {
+    }
 
     public function handle(): void
     {
@@ -52,7 +56,8 @@ class ApplyMonthlyYieldJob implements ShouldQueue
         foreach ($idChunks as $ids) {
             // agrega saldo por vínculo (1 query por chunk)
             $balances = DB::table('money_transactions')
-                ->selectRaw('customer_plan_id,
+                ->selectRaw(
+                    'customer_plan_id,
                 SUM(CASE
                     WHEN type = ? THEN amount
                     WHEN type = ? THEN amount
@@ -62,7 +67,8 @@ class ApplyMonthlyYieldJob implements ShouldQueue
                         MoneyTransaction::TYPE_DEPOSIT,
                         MoneyTransaction::TYPE_YIELD,
                         MoneyTransaction::TYPE_WITHDRAWAL,
-                    ])
+                    ]
+                )
                 ->whereIn('customer_plan_id', $ids)
                 ->where('status', MoneyTransaction::STATUS_APPROVED)
                 ->whereDate('effective_date', '<=', $periodEnd)

@@ -37,7 +37,7 @@ class WelcomeCustomerNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
+        return (new MailMessage())
             ->subject('Bem-vindo(a) à plataforma ' . config('app.name') . '!')
             ->markdown('mail.welcome-customer', [
                 'name'     => $notifiable->name,

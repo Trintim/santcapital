@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
@@ -11,7 +13,9 @@ class WithdrawalRequestedCustomerReceipt extends Notification implements ShouldQ
 {
     use Queueable;
 
-    public function __construct(public float $amount) {}
+    public function __construct(public float $amount)
+    {
+    }
 
     public function via($notifiable): array
     {
@@ -20,7 +24,7 @@ class WithdrawalRequestedCustomerReceipt extends Notification implements ShouldQ
 
     public function toMail($notifiable): MailMessage
     {
-        return (new MailMessage)
+        return (new MailMessage())
             ->subject('Solicitação de saque recebida')
             ->greeting("Olá, {$notifiable->name}!")
             ->line('Recebemos sua solicitação de saque.')

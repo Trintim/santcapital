@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers\Customer;
 
@@ -87,8 +87,9 @@ class DashboardController extends Controller
             ->get();
 
         $series = [];
+
         foreach ($rows as $r) {
-            $k = (string) $r->k; // YYYY-MM-01
+            $k   = (string) $r->k; // YYYY-MM-01
             $dep = (float) $r->deposits;
             $yld = (float) $r->yields;
             $wd  = (float) $r->withdraws;

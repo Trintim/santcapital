@@ -75,36 +75,36 @@ class DepositController extends Controller
         ]);
     }
 
-//    public function availableBalance(int $customerPlanId): float
-//    {
-//        // aprovado até hoje
-//        $approved = DB::table('money_transactions')
-//            ->where('customer_plan_id', $customerPlanId)
-//            ->where('status', MoneyTransaction::STATUS_APPROVED)
-//            ->whereDate('effective_date', '<=', now()->toDateString())
-//            ->selectRaw('
-//                COALESCE(SUM(CASE WHEN type = ? THEN amount END),0) as deposits,
-//                COALESCE(SUM(CASE WHEN type = ? THEN amount END),0) as yields,
-//                COALESCE(SUM(CASE WHEN type = ? THEN amount END),0) as withdraws
-//            ', [
-//                MoneyTransaction::TYPE_DEPOSIT,
-//                MoneyTransaction::TYPE_YIELD,
-//                MoneyTransaction::TYPE_WITHDRAWAL,
-//            ])
-//            ->first();
-//
-//        $pendingWithdraw = (float) DB::table('money_transactions')
-//            ->where('customer_plan_id', $customerPlanId)
-//            ->where('status', MoneyTransaction::STATUS_PENDING)
-//            ->where('type', MoneyTransaction::TYPE_WITHDRAWAL)
-//            ->sum('amount');
-//
-//        //        dd($approved, $pendingWithdraw);
-//
-//        $base = (float) $approved->deposits + (float) $approved->yields - (float) $approved->withdraws;
-//
-//        return max(0, $base - $pendingWithdraw);
-//    }
+    //    public function availableBalance(int $customerPlanId): float
+    //    {
+    //        // aprovado até hoje
+    //        $approved = DB::table('money_transactions')
+    //            ->where('customer_plan_id', $customerPlanId)
+    //            ->where('status', MoneyTransaction::STATUS_APPROVED)
+    //            ->whereDate('effective_date', '<=', now()->toDateString())
+    //            ->selectRaw('
+    //                COALESCE(SUM(CASE WHEN type = ? THEN amount END),0) as deposits,
+    //                COALESCE(SUM(CASE WHEN type = ? THEN amount END),0) as yields,
+    //                COALESCE(SUM(CASE WHEN type = ? THEN amount END),0) as withdraws
+    //            ', [
+    //                MoneyTransaction::TYPE_DEPOSIT,
+    //                MoneyTransaction::TYPE_YIELD,
+    //                MoneyTransaction::TYPE_WITHDRAWAL,
+    //            ])
+    //            ->first();
+    //
+    //        $pendingWithdraw = (float) DB::table('money_transactions')
+    //            ->where('customer_plan_id', $customerPlanId)
+    //            ->where('status', MoneyTransaction::STATUS_PENDING)
+    //            ->where('type', MoneyTransaction::TYPE_WITHDRAWAL)
+    //            ->sum('amount');
+    //
+    //        //        dd($approved, $pendingWithdraw);
+    //
+    //        $base = (float) $approved->deposits + (float) $approved->yields - (float) $approved->withdraws;
+    //
+    //        return max(0, $base - $pendingWithdraw);
+    //    }
 
     public function isWithdrawEligible(CustomerPlan $cp, float $available): bool
     {

@@ -8,7 +8,6 @@ use App\Enums\Auth\Role as RoleEnum;
 use App\Http\Controllers\Controller;
 use App\Models\CustomerPlan;
 use App\Models\MoneyTransaction;
-use App\Models\Role;
 use App\Models\User;
 use App\Notifications\WithdrawalRequestedCustomerReceipt;
 use App\Notifications\WithdrawRequestedNotification;

@@ -97,6 +97,7 @@ class DepositController extends Controller
 
             // ativa vínculo se for a 1ª aprovação
             $cp = $transaction->customerPlan()->lockForUpdate()->first();
+
             if ($cp && $cp->status === 'pre_active') {
                 $cp->update([
                     'status'       => 'active',
