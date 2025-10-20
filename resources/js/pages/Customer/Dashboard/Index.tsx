@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AppLayout from "@/layouts/app-layout";
 import { Head } from "@inertiajs/react";
-import { PerformanceMonthly } from "./Partials/PerformanceMonthly";
+import { PerformanceLines } from "./Partials/PerformanceLines";
 
 export default function Dashboard({ kpis, series, dimension }) {
     const fmtBRL = (n?: number) =>
@@ -42,7 +42,7 @@ export default function Dashboard({ kpis, series, dimension }) {
             </div>
 
             <div className="mt-6">
-                <PerformanceMonthly series={series} />
+                <PerformanceLines series={series} />
             </div>
         </AppLayout>
     );

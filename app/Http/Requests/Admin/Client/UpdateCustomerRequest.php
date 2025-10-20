@@ -34,7 +34,7 @@ class UpdateCustomerRequest extends FormRequest
             'email'     => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($id)],
             'password'  => ['nullable', 'string', 'min:8'],
             'phone'     => ['nullable', 'string', 'size:11', Rule::unique('users', 'phone')->ignore($id)],
-            'document'  => ['nullable', 'string', 'size:14', Rule::unique('users', 'document')->ignore($id)],
+            'document'  => ['nullable', 'string', 'min:11', ' max:14', Rule::unique('users', 'document')->ignore($id)],
             'birthdate' => ['nullable', 'date'],
             'pix_key'   => ['nullable', 'string', 'max:255'],
             'is_active' => ['sometimes', 'boolean'],

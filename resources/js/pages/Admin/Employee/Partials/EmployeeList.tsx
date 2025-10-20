@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useFilter } from "@/hooks/useFilter";
 import { useSort } from "@/hooks/useSort";
+import { formatCpfCnpj, formatPhoneBr } from "@/lib/utils";
 import { filterQueryParams } from "@/utils";
 import { router, useForm } from "@inertiajs/react";
 import { CheckCircle2, MoreHorizontal, Pencil, PlusIcon, Search, Trash2, XCircle } from "lucide-react";
@@ -181,8 +182,8 @@ export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
                                             <TableCell>{index + 1}</TableCell>
                                             <TableCell className="max-w-32 truncate">{emp.name}</TableCell>
                                             <TableCell className="max-w-36 truncate">{emp.email}</TableCell>
-                                            <TableCell>{emp.phone ?? "—"}</TableCell>
-                                            <TableCell>{emp.document ?? "—"}</TableCell>
+                                            <TableCell>{formatPhoneBr(emp.phone || "—")}</TableCell>
+                                            <TableCell>{formatCpfCnpj(emp.document || "—")}</TableCell>
                                             <TableCell className="whitespace-nowrap">
                                                 <Badge
                                                     variant={"default"}

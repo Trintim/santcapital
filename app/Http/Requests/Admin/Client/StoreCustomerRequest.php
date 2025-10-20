@@ -31,7 +31,7 @@ class StoreCustomerRequest extends FormRequest
             'name'      => ['required', 'string', 'max:255'],
             'email'     => ['required', 'email', 'max:255', 'unique:users,email'],
             'phone'     => ['nullable', 'string', 'size:11', 'unique:users,phone'],
-            'document'  => ['nullable', 'string', 'size:14', 'unique:users,document'],
+            'document'  => ['nullable', 'string', 'min:11', ' max:14', 'unique:users,document'],
             'birthdate' => ['nullable', 'date'],
             'pix_key'   => ['nullable', 'string', 'max:255'],
             'is_active' => ['sometimes', 'boolean'],

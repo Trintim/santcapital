@@ -27,6 +27,7 @@ Route::middleware(['auth', 'role:admin'])
                 Route::get('/', [InvestmentPlanController::class, 'index'])->name('index');
                 Route::get('create', [InvestmentPlanController::class, 'create'])->name('create');
                 Route::post('/', [InvestmentPlanController::class, 'store'])->name('store');
+                Route::get('{plan}', [InvestmentPlanController::class, 'show'])->name('show');
                 Route::get('{plan}/edit', [InvestmentPlanController::class, 'edit'])->name('edit');
                 Route::put('{plan}', [InvestmentPlanController::class, 'update'])->name('update');
                 Route::patch('{plan}/toggle', [InvestmentPlanController::class, 'toggleActive'])->name('toggle-active');

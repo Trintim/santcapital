@@ -36,7 +36,6 @@ function deriveTheme(props: any): Theme {
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
     const props = usePage<SharedData>().props;
-    console.log("ThemeProvider props:", props);
 
     const [theme, setTheme] = useState<Theme>(() => deriveTheme(props.theme));
 
