@@ -25,7 +25,7 @@
             @forelse($yields as $yield)
                 <tr>
                     <td>{{ \Carbon\Carbon::parse($yield->period)->format('m/Y') }}</td>
-                    <td>{{ $yield->investment_plan_id }}</td>
+                    <td>{{ $yield->customerPlan->plan->name ?? '-' }}</td>
                     <td>{{ number_format((float)$yield->percent_decimal, 2, ',', '.') }}%</td>
                 </tr>
             @empty

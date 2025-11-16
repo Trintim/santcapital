@@ -7,6 +7,7 @@ namespace App\Models;
 use Carbon\CarbonImmutable;
 use Eloquent;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -50,9 +51,9 @@ class WeeklyYield extends Model
         ];
     }
 
-    protected function percentDecimal(): \Illuminate\Database\Eloquent\Casts\Attribute
+    protected function percentDecimal(): Attribute
     {
-        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+        return Attribute::make(
             get: fn ($value) => $value * 100,
             set: fn ($value) => $value / 100,
         );

@@ -15,6 +15,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Lottery;
 use Schema;
 
 // Arquivo obsoleto: toda lógica de rendimento agora é semanal e automatizada.
@@ -105,6 +106,8 @@ class ApplyWeeklyYieldJob implements ShouldQueue
                     ->all();
             }
 
+            $maxAbsRate = $maxRate !== null ? abs($maxRate) : null;
+
             foreach ($balances as $cpId => $base) {
                 $base = (float) $base;
 
@@ -117,17 +120,18 @@ class ApplyWeeklyYieldJob implements ShouldQueue
                 }
                 $appliedRate = $customRates[$cpId] ?? $rate;
 
-                // Respeitar limites
-                if ($minRate !== null && $appliedRate < $minRate) {
-                    $appliedRate = $minRate;
+                // Loteria: 25% de chance de inverter o sinal do rendimento padrão
+                if (! isset($customRates[$cpId])) {
+                    if (Lottery::odds(1, 4)->choose()) {
+                        $appliedRate *= -1;
+                    }
                 }
 
-                if ($maxRate !== null && $appliedRate > $maxRate) {
-                    $appliedRate = $maxRate;
+                if ($maxAbsRate !== null && abs($appliedRate) > $maxAbsRate) {
+                    $appliedRate = $appliedRate < 0 ? -$maxAbsRate : $maxAbsRate;
                 }
                 $amount = round($base * $appliedRate, 2);
 
-                // Permitir negativo
                 if ($amount == 0) {
                     continue;
                 }
