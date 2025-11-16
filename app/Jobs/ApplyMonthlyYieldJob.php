@@ -6,7 +6,7 @@ namespace App\Jobs;
 
 use App\Models\CustomerPlan;
 use App\Models\MoneyTransaction;
-use App\Models\MonthlyYield;
+use App\Models\WeeklyYield;
 use Carbon\CarbonImmutable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -15,7 +15,8 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 
-class ApplyMonthlyYieldJob implements ShouldQueue
+// Arquivo obsoleto: toda lógica de rendimento agora é semanal e automatizada.
+class ApplyWeeklyYieldJob implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
@@ -26,19 +27,19 @@ class ApplyMonthlyYieldJob implements ShouldQueue
 
     public function __construct(
         public int $investmentPlanId,
-        public string $period // 'YYYY-MM'
+        public string $period // 'YYYY-MM-DD' (primeiro dia da semana)
     ) {
     }
 
     public function handle(): void
     {
-        $monthly = MonthlyYield::query()
+        $weekly = WeeklyYield::query()
             ->where('investment_plan_id', $this->investmentPlanId)
             ->where('period', $this->period)
             ->firstOrFail();
 
-        $dt        = CarbonImmutable::parse($this->period . '-01');
-        $periodEnd = $dt->endOfMonth()->toDateString();
+        $dt        = CarbonImmutable::parse($this->period);
+        $periodEnd = $dt->endOfWeek()->toDateString();
 
         $customerPlanIds = CustomerPlan::query()
             ->where('investment_plan_id', $this->investmentPlanId)
@@ -50,11 +51,9 @@ class ApplyMonthlyYieldJob implements ShouldQueue
             return;
         }
 
-        // MVP: chunks pequenos
-        $idChunks = array_chunk($customerPlanIds->all(), 100); // <= 100 IDs por bloco
+        $idChunks = array_chunk($customerPlanIds->all(), 100);
 
         foreach ($idChunks as $ids) {
-            // agrega saldo por vínculo (1 query por chunk)
             $balances = DB::table('money_transactions')
                 ->selectRaw(
                     'customer_plan_id,
@@ -79,7 +78,6 @@ class ApplyMonthlyYieldJob implements ShouldQueue
                 continue;
             }
 
-            // idempotência (1 query por chunk)
             $alreadyYielded = DB::table('money_transactions')
                 ->whereIn('customer_plan_id', $ids)
                 ->where('type', MoneyTransaction::TYPE_YIELD)
@@ -89,8 +87,22 @@ class ApplyMonthlyYieldJob implements ShouldQueue
 
             $alreadySet = array_flip($alreadyYielded);
 
-            $rows = [];
-            $rate = (float) $monthly->percent_decimal;
+            $rows    = [];
+            $plan    = \App\Models\InvestmentPlan::findOrFail($this->investmentPlanId);
+            $rate    = (float) $weekly->percent_decimal;
+            $minRate = $plan->expected_return_min_decimal ? (float)$plan->expected_return_min_decimal : null;
+            $maxRate = $plan->expected_return_max_decimal ? (float)$plan->expected_return_max_decimal : null;
+
+            // Buscar percentuais personalizados (exemplo: tabela customer_plan_custom_yields)
+            $customRates = [];
+
+            if (\Schema::hasTable('customer_plan_custom_yields')) {
+                $customRates = DB::table('customer_plan_custom_yields')
+                    ->whereIn('customer_plan_id', $ids)
+                    ->where('period', $this->period)
+                    ->pluck('percent_decimal', 'customer_plan_id')
+                    ->all();
+            }
 
             foreach ($balances as $cpId => $base) {
                 $base = (float) $base;
@@ -102,13 +114,22 @@ class ApplyMonthlyYieldJob implements ShouldQueue
                 if (isset($alreadySet[$cpId])) {
                     continue;
                 }
+                $appliedRate = $customRates[$cpId] ?? $rate;
 
-                $amount = round($base * $rate, 2);
-
-                if ($amount <= 0) {
-                    continue;
+                // Respeitar limites
+                if ($minRate !== null && $appliedRate < $minRate) {
+                    $appliedRate = $minRate;
                 }
 
+                if ($maxRate !== null && $appliedRate > $maxRate) {
+                    $appliedRate = $maxRate;
+                }
+                $amount = round($base * $appliedRate, 2);
+
+                // Permitir negativo
+                if ($amount == 0) {
+                    continue;
+                }
                 $rows[] = [
                     'customer_plan_id' => (int) $cpId,
                     'type'             => MoneyTransaction::TYPE_YIELD,
@@ -116,8 +137,8 @@ class ApplyMonthlyYieldJob implements ShouldQueue
                     'effective_date'   => $periodEnd,
                     'status'           => MoneyTransaction::STATUS_APPROVED,
                     'origin'           => 'system',
-                    'created_by'       => $monthly->recorded_by,
-                    'approved_by'      => $monthly->recorded_by,
+                    'created_by'       => $weekly->recorded_by,
+                    'approved_by'      => $weekly->recorded_by,
                     'created_at'       => now(),
                     'updated_at'       => now(),
                 ];
@@ -127,7 +148,6 @@ class ApplyMonthlyYieldJob implements ShouldQueue
                 continue;
             }
 
-            // MVP: inserts em blocos de 25
             foreach (array_chunk($rows, 25) as $chunk) {
                 DB::table('money_transactions')->insert($chunk);
             }

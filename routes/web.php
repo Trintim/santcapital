@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin;
 use App\Http\Controllers\Admin\InvestmentPlanController;
 use App\Http\Controllers\Admin\InvestmentPlanLockupOptionController;
 use App\Http\Controllers\Admin\MonthlyYieldController;
+use App\Http\Controllers\Admin\WeeklyYieldController;
 use App\Http\Controllers\Employee;
 use App\Http\Controllers\Employee\CustomerController;
 use App\Http\Controllers\Employee\CustomerPlanController;
@@ -45,6 +46,17 @@ Route::middleware(['auth', 'role:admin'])
                 Route::post('apply', [MonthlyYieldController::class, 'apply'])->name('apply');
                 Route::delete('{monthlyYield}', [MonthlyYieldController::class, 'destroy'])
                     ->name('destroy');
+            });
+
+        // Weekly yields
+        Route::prefix('rendimentos-semanais')
+            ->name('weekly-yields.')
+            ->group(function () {
+                Route::get('/', [WeeklyYieldController::class, 'index'])->name('index');
+                Route::get('create', [WeeklyYieldController::class, 'create'])->name('create');
+                Route::post('/', [WeeklyYieldController::class, 'store'])->name('store');
+                Route::get('edit/{id}', [WeeklyYieldController::class, 'edit'])->name('edit');
+                Route::put('update/{id}', [WeeklyYieldController::class, 'update'])->name('update');
             });
 
         // region Employees

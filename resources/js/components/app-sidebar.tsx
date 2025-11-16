@@ -47,6 +47,11 @@ const mainNavItems: NavItem[] = [
         href: "/admin/saques",
         icon: ChartCandlestickIcon,
     },
+    {
+        title: "Rendimentos Semanais",
+        href: "/admin/rendimentos-semanais",
+        icon: ChartCandlestickIcon,
+    },
 ];
 
 const funcionarioNavItems: NavItem[] = [
