@@ -49,4 +49,12 @@ class WeeklyYield extends Model
             'period' => 'date',
         ];
     }
+
+    protected function percentDecimal(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: fn ($value) => $value * 100,
+            set: fn ($value) => $value / 100,
+        );
+    }
 }

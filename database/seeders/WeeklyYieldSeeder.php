@@ -12,15 +12,19 @@ class WeeklyYieldSeeder extends Seeder
 {
     public function run(): void
     {
-        $period = now()->startOfWeek()->toDateString();
+        $start = now()->subMonths(6)->startOfWeek();
+        $end   = now()->endOfWeek();
         $plans = InvestmentPlan::where('is_active', true)->get();
-        foreach ($plans as $plan) {
-            WeeklyYield::factory()->create([
-                'investment_plan_id' => $plan->id,
-                'period' => $period,
-                'percent_decimal' => 0.05,
-                'recorded_by' => 1,
-            ]);
+
+        for ($date = $start->copy(); $date->lte($end); $date->addWeek()) {
+            foreach ($plans as $plan) {
+                WeeklyYield::factory()->create([
+                    'investment_plan_id' => $plan->id,
+                    'period'             => $date->toDateString(),
+                    'percent_decimal'    => rand(-5, 10) / 100, // valores entre -5% e 10%
+                    'recorded_by'        => 1,
+                ]);
+            }
         }
     }
 }

@@ -3,10 +3,9 @@
 declare(strict_types = 1);
 
 use App\Console\Commands\ApplyWeeklyYieldsCommand;
-use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Console\Scheduling\Schedule as ScheduleAlias;
+use Illuminate\Support\Facades\Schedule;
 
-Artisan::command(ApplyWeeklyYieldsCommand::class, function (Schedule $schedule) {
-    $schedule->command(ApplyWeeklyYieldsCommand::class)->everyMinute();
-    //        ->weeklyOn(Schedule::SUNDAY, '23:00');
-});
+Schedule::command(ApplyWeeklyYieldsCommand::class)
+    ->weeklyOn(ScheduleAlias::SUNDAY, '00:00') // toda segunda-feira à meia-noite
+    ->withoutOverlapping();

@@ -5,10 +5,12 @@ declare(strict_types = 1);
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Mail\CustomerYieldPdf;
 use App\Models\CustomerPlanCustomYield;
 use App\Models\MoneyTransaction;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -44,14 +46,42 @@ class DashboardController extends Controller
             ->where('t.type', MoneyTransaction::TYPE_DEPOSIT)
             ->count();
 
-        // Média de rendimentos (12m mais recentes) — retorna DECIMAL cru (ex.: 0.0245)
-        $avgYield12m = CustomerPlanCustomYield::query()
-            ->whereHas('customerPlan', function ($q) use ($userId) {
-                $q->where('user_id', $userId);
-            })
-            ->whereDate('period', '>=', $now->subMonths(12)->startOfMonth()->toDateString())
-            ->whereDate('period', '<=', $now->endOfDay()->toDateString())
-            ->avg('percent_decimal');
+        // Média de rendimentos (12m mais recentes) — considera custom e padrão
+        $plans = DB::table('customer_plans')->where('user_id', $userId)->pluck('id');
+        $weeks = DB::table('weekly_yields')
+            ->select('period')
+            ->whereBetween('period', [$now->subMonths(12)->startOfWeek()->toDateString(), $now->endOfWeek()->toDateString()])
+            ->groupBy('period')
+            ->orderBy('period')
+            ->get();
+        $totalYield = 0;
+        $countYield = 0;
+
+        foreach ($plans as $planId) {
+            foreach ($weeks as $week) {
+                $custom = DB::table('customer_plan_custom_yields')
+                    ->where('customer_plan_id', $planId)
+                    ->where('period', $week->period)
+                    ->value('percent_decimal');
+
+                if ($custom !== null) {
+                    $totalYield += (float)$custom;
+                    $countYield++;
+                } else {
+                    $plan    = DB::table('customer_plans')->where('id', $planId)->first();
+                    $default = DB::table('weekly_yields')
+                        ->where('investment_plan_id', $plan->investment_plan_id)
+                        ->where('period', $week->period)
+                        ->value('percent_decimal');
+
+                    if ($default !== null) {
+                        $totalYield += (float)$default;
+                        $countYield++;
+                    }
+                }
+            }
+        }
+        $avgYield12m = $countYield > 0 ? $totalYield / $countYield : null;
 
         // === Série MENSAL (12 meses) ===
         $start = $now->copy()->startOfMonth()->subMonths(11); // inclui o mês atual -11
@@ -123,10 +153,43 @@ class DashboardController extends Controller
                 'qtdAportes'       => $qtdAportes,
                 'totalInvestido'   => $totalInvestido,
                 'totalRendimentos' => $totalRendimentos,
+                'avgYield12m'      => $avgYield12m,  // média de rendimento dos últimos 12 meses
             ],
-            'series'      => $series,              // mensal
-            'dimension'   => ['mode' => 'month'],  // para o componente
-            'avgYield12m' => $avgYield12m,      // média de rendimento dos últimos 12 meses
+            'series'    => $series,              // mensal
+            'dimension' => ['mode' => 'month'],  // para o componente
         ]);
+    }
+
+    public function exportPdf()
+    {
+        $user          = auth()->user();
+        $userId        = (int) $user->id;
+        $now           = now()->toImmutable();
+        $currentMonth  = $now->format('Y-m');
+        $previousMonth = $now->subMonth()->format('Y-m');
+        $previousYear  = $now->subYear()->format('Y-m');
+
+        // Buscar rendimentos do mês atual, anterior e do mesmo mês do ano anterior
+        $yields = CustomerPlanCustomYield::query()
+            ->whereHas('customerPlan', function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            })
+            ->whereIn(\DB::raw("DATE_FORMAT(period, '%Y-%m')"), [$currentMonth, $previousMonth, $previousYear])
+            ->with('customerPlan.plan')
+            ->get();
+
+        $data = [
+            'user'          => $user,
+            'yields'        => $yields,
+            'currentMonth'  => $currentMonth,
+            'previousMonth' => $previousMonth,
+            'previousYear'  => $previousYear,
+        ];
+
+        $filename = 'rendimentos_' . $user->id . '_' . $now->format('Ymd_His') . '.pdf';
+
+        Mail::to($user->email)->queue(new CustomerYieldPdf($user, $data, $filename));
+
+        return back()->with('success', 'PDF enviado para seu email!');
     }
 }

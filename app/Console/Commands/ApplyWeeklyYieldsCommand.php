@@ -33,16 +33,19 @@ class ApplyWeeklyYieldsCommand extends Command
         }
 
         $allPlans = InvestmentPlan::where('is_active', true)->get(['id', 'name']);
-        $missing = [];
+        $missing  = [];
+
         foreach ($allPlans as $plan) {
-            if (!in_array($plan->id, $planIdsWithYield)) {
+            if (! in_array($plan->id, $planIdsWithYield)) {
                 $missing[] = $plan->name . " (ID: $plan->id)";
             }
         }
+
         if ($missing) {
             $this->warn("Os seguintes planos ativos não possuem WeeklyYield para o período {$period}:");
+
             foreach ($missing as $msg) {
-                $this->line("- " . $msg);
+                $this->line('- ' . $msg);
             }
         }
 

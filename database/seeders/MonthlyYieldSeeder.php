@@ -15,7 +15,21 @@ class MonthlyYieldSeeder extends Seeder
      */
     public function run(): void
     {
-        $plans = InvestmentPlan::all();
+        $plans  = InvestmentPlan::all();
+        $months = [2, 3, 4, 5, 6, 7]; // fevereiro a julho
+
+        foreach ($plans as $plan) {
+            foreach ($months as $month) {
+                $period = '2025-' . str_pad((string) $month, 2, '0', STR_PAD_LEFT) . '-01';
+                MonthlyYield::firstOrCreate(
+                    ['investment_plan_id' => $plan->id, 'period' => $period],
+                    [
+                        'percent_decimal' => mt_rand(6, 25) / 1000, // 0.6% a 2.5%
+                        'recorded_by'     => 1,
+                    ]
+                );
+            }
+        }
 
         foreach ($plans as $plan) {
             // cria 12 meses (incluindo alguns aleatórios zerados para variar)

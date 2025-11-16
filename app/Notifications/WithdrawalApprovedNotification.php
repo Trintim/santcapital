@@ -14,7 +14,9 @@ class WithdrawalApprovedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public MoneyTransaction $tx) {}
+    public function __construct(public MoneyTransaction $tx)
+    {
+    }
 
     public function via($notifiable): array
     {
@@ -25,7 +27,7 @@ class WithdrawalApprovedNotification extends Notification implements ShouldQueue
     {
         $valor = number_format((float) $this->tx->amount, 2, ',', '.');
 
-        return (new MailMessage)
+        return (new MailMessage())
             ->subject('Seu saque foi aprovado')
             ->line("Olá, seu saque de R$ {$valor} foi aprovado.")
             ->line('Em breve o valor será enviado conforme dados informados na solicitação.');

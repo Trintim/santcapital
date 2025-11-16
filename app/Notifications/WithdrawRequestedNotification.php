@@ -18,7 +18,8 @@ class WithdrawRequestedNotification extends Notification implements ShouldQueue
         public CustomerPlan $customerPlan,
         public float $amount,
         public array $bankData, // pix/account info (sanitized)
-    ) {}
+    ) {
+    }
 
     public function via($notifiable): array
     {
@@ -31,7 +32,7 @@ class WithdrawRequestedNotification extends Notification implements ShouldQueue
         $plan      = $this->customerPlan->plan;
         $routeName = $notifiable->hasRole('admin') ? 'admin.deposits.index' : 'employee.deposits.index';
 
-        return (new MailMessage)
+        return (new MailMessage())
             ->subject('Nova solicitação de saque')
             ->greeting('Olá, equipe!')
             ->line("Cliente: {$c?->name} ({$c?->email})")

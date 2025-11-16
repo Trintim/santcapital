@@ -1,14 +1,17 @@
 // resources/js/pages/Customer/Dashboard/Index.tsx
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AppLayout from "@/layouts/app-layout";
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { PerformanceLines } from "./Partials/PerformanceLines";
 
 type KPIs = {
     qtdAportes: number;
     totalInvestido: number;
     totalRendimentos: number;
-    avgYield12m?: number | null;
+    avgYield12m?: string | number | null;
 };
 type SeriesPoint = {
     key: string;
@@ -28,12 +31,37 @@ type Props = {
 export default function Dashboard({ kpis, series }: Props) {
     const fmtBRL = (n?: number) =>
         typeof n === "number" ? `R$ ${n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—";
+    console.log(kpis);
+    const [loading, setLoading] = useState(false);
+    const handleExport = async () => {
+        setLoading(true);
+        try {
+            router.post(
+                route("customer.dashboard.export-pdf"),
+                {},
+                {
+                    onSuccess: () => {
+                        toast.success("PDF dos rendimentos enviado para seu email!");
+                    },
+                    onError: () => {
+                        toast.error("Erro ao enviar PDF por email. Tente novamente.");
+                    },
+                    onFinish: () => {
+                        setLoading(false);
+                    },
+                },
+            );
+        } catch {
+            toast.error("Erro inesperado ao exportar PDF.");
+            setLoading(false);
+        }
+    };
 
     return (
         <AppLayout>
             <Head title="Meu painel" />
 
-            <div className="grid auto-rows-min gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid auto-rows-min gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-sm text-muted-foreground">Meus aportes</CardTitle>
@@ -67,20 +95,30 @@ export default function Dashboard({ kpis, series }: Props) {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-semibold">
-                            {typeof kpis?.avgYield12m === "number" && !isNaN(kpis?.avgYield12m) ? `${(kpis?.avgYield12m * 100).toFixed(2)}%` : "—"}
+                            {(typeof kpis.avgYield12m === "string" || typeof kpis.avgYield12m === "number") && !isNaN(Number(kpis.avgYield12m))
+                                ? `${(Number(kpis.avgYield12m) * 100).toFixed(2)}%`
+                                : "—"}
                         </div>
                     </CardContent>
                 </Card>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+                <Button variant="outline" onClick={handleExport} disabled={loading}>
+                    {loading ? "Exportando..." : "Exportar PDF dos rendimentos"}
+                </Button>
             </div>
 
             <div className="mt-6">
                 {series && Array.isArray(series) && series.length > 0 ? (
                     <PerformanceLines series={series} />
                 ) : (
-                    <Card className="text-center py-12">
+                    <Card className="py-12 text-center">
                         <CardHeader>
                             <CardTitle>Nenhum dado para exibir o gráfico</CardTitle>
-                            <CardContent className="text-muted-foreground">Os fluxos mensais e patrimônio só aparecem após movimentações.</CardContent>
+                            <CardContent className="text-muted-foreground">
+                                Os fluxos mensais e patrimônio só aparecem após movimentações.
+                            </CardContent>
                         </CardHeader>
                     </Card>
                 )}

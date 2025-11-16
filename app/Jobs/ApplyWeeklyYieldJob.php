@@ -30,7 +30,8 @@ class ApplyWeeklyYieldJob implements ShouldQueue
     public function __construct(
         public int $investmentPlanId,
         public string $period // 'YYYY-MM-DD' (primeiro dia da semana)
-    ) {}
+    ) {
+    }
 
     public function handle(): void
     {

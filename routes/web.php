@@ -157,6 +157,9 @@ Route::middleware(['auth', 'role:customer'])
         // Solicitação de saque (cria transação PENDING TYPE_WITHDRAWAL)
         Route::post('saques', [App\Http\Controllers\Customer\WithdrawalController::class, 'store'])
             ->name('withdrawals.store');
+
+        Route::post('dashboard/export-pdf', [App\Http\Controllers\Customer\DashboardController::class, 'exportPdf'])
+            ->name('dashboard.export-pdf');
     });
 
 require __DIR__ . '/settings.php';
