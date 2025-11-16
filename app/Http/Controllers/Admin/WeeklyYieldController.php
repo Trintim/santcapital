@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Admin\CustomerPlanCustomYieldResource;
 use App\Models\InvestmentPlan;
 use Illuminate\Http\Request;
 
@@ -12,13 +13,33 @@ class WeeklyYieldController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage      = max(10, (int) $request->integer('per_page', 15));
-        $customYields = \App\Models\CustomerPlanCustomYield::with(['customerPlan.customer', 'customerPlan.plan'])
-            ->orderByDesc('period')
-            ->paginate($perPage);
+        $sortBy    = $request->input('sort-by', 'period');
+        $direction = $request->input('direction', 'desc');
+        $search    = $request->input('search');
+        $perPage   = $request->input('per-page', 15);
+
+        $query = \App\Models\CustomerPlanCustomYield::with(['customerPlan.customer', 'customerPlan.plan']);
+
+        if ($search) {
+            $query->whereHas('customerPlan.customer', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
+        }
+        $customYields = CustomerPlanCustomYieldResource::collection(
+            $query->orderBy($sortBy, $direction)
+                ->paginate($perPage)
+                ->onEachSide(1)
+                ->withQueryString()
+        );
 
         return \Inertia\Inertia::render('Admin/WeeklyYields/Index', [
             'customYields' => $customYields,
+            'filters'      => [
+                'search'    => $search,
+                'per-page'  => $perPage,
+                'sort-by'   => $sortBy,
+                'direction' => $direction,
+            ],
         ]);
     }
 
@@ -38,14 +59,14 @@ class WeeklyYieldController extends Controller
                 'customer_plan_id' => $custom['customer_plan_id'],
                 'period'           => $data['period'],
             ], [
-                'percent_decimal' => $custom['percent_decimal'],
+                'percent_decimal' => $custom['percent_decimal'], // mutator faz conversão
                 'updated_at'      => now(),
                 'created_at'      => now(),
                 'recorded_by'     => $data['recorded_by'],
             ]);
         }
 
-        return back()->with('success', 'Rendimento personalizado registrado!');
+        return redirect()->route('admin.weekly-yields.index')->with('success', 'Rendimento personalizado registrado!');
     }
 
     public function create(Request $request)
@@ -106,10 +127,32 @@ class WeeklyYieldController extends Controller
         \DB::table('customer_plan_custom_yields')->where('id', $id)->update([
             'customer_plan_id' => $data['customer_plan_id'],
             'period'           => $data['period'],
-            'percent_decimal'  => $data['percent_decimal'],
+            'percent_decimal'  => $data['percent_decimal'], // mutator faz conversão
             'updated_at'       => now(),
         ]);
 
-        return back()->with('success', 'Rendimento personalizado atualizado!');
+        return redirect()->route('admin.weekly-yields.index')->with('success', 'Rendimento personalizado atualizado!');
+    }
+
+    public function runJob(Request $request)
+    {
+        // Para teste, pega o primeiro plano ativo e a semana atual
+        $plan   = InvestmentPlan::where('is_active', true)->first();
+        $period = now()->startOfWeek()->toDateString();
+
+        if ($plan) {
+            \App\Jobs\ApplyWeeklyYieldJob::dispatch($plan->id, $period);
+
+            return back()->with('success', 'Job semanal disparado para plano ' . $plan->name . ' e período ' . $period);
+        }
+
+        return back()->with('error', 'Nenhum plano ativo encontrado para testar o job.');
+    }
+
+    public function destroy($id)
+    {
+        \DB::table('customer_plan_custom_yields')->where('id', $id)->delete();
+
+        return back()->with('success', 'Rendimento personalizado removido!');
     }
 }

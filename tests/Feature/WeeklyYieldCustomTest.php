@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Tests\Feature;
 
@@ -18,28 +18,29 @@ class WeeklyYieldCustomTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
         // Garante que o papel admin existe
-        if (!\App\Models\Role::where('name', \App\Enums\Auth\Role::Admin)->exists()) {
+        if (! \App\Models\Role::where('name', \App\Enums\Auth\Role::Admin)->exists()) {
             \App\Models\Role::create(['name' => \App\Enums\Auth\Role::Admin]);
         }
     }
 
     public function test_create_and_update_custom_yield_for_same_week_and_customer_plan(): void
     {
-        $admin = User::factory()->create();
+        $admin     = User::factory()->create();
         $roleAdmin = \App\Models\Role::where('name', \App\Enums\Auth\Role::Admin)->first();
         $admin->roles()->attach($roleAdmin);
         $customerPlan = CustomerPlan::factory()->create();
-        $period = '2025-11-15';
+        $period       = '2025-11-15';
 
         // Cria rendimento personalizado
         $this->actingAs($admin)
             ->post('/admin/rendimentos-semanais', [
-                'period' => $period,
+                'period'        => $period,
                 'custom_yields' => [
                     [
                         'customer_plan_id' => $customerPlan->id,
-                        'percent_decimal' => '5',
+                        'percent_decimal'  => '5',
                     ],
                 ],
                 'recorded_by' => $admin->id,
@@ -48,18 +49,18 @@ class WeeklyYieldCustomTest extends TestCase
 
         $this->assertDatabaseHas('customer_plan_custom_yields', [
             'customer_plan_id' => $customerPlan->id,
-            'period' => $period,
-            'percent_decimal' => '5.0000',
+            'period'           => $period,
+            'percent_decimal'  => '5.0000',
         ]);
 
         // Atualiza rendimento para mesma semana e cliente/plano
         $this->actingAs($admin)
             ->post('/admin/rendimentos-semanais', [
-                'period' => $period,
+                'period'        => $period,
                 'custom_yields' => [
                     [
                         'customer_plan_id' => $customerPlan->id,
-                        'percent_decimal' => '-2.5',
+                        'percent_decimal'  => '-2.5',
                     ],
                 ],
                 'recorded_by' => $admin->id,
@@ -68,8 +69,8 @@ class WeeklyYieldCustomTest extends TestCase
 
         $this->assertDatabaseHas('customer_plan_custom_yields', [
             'customer_plan_id' => $customerPlan->id,
-            'period' => $period,
-            'percent_decimal' => '-2.5000',
+            'period'           => $period,
+            'percent_decimal'  => '-2.5000',
         ]);
     }
 
@@ -77,13 +78,13 @@ class WeeklyYieldCustomTest extends TestCase
     {
         $admin = User::factory()->asAdmin()->create();
 
-        $customer = User::factory()->asCustomer()->create();
+        $customer       = User::factory()->asCustomer()->create();
         $investmentPlan = InvestmentPlan::factory()->create();
 
         $customerPlan = CustomerPlan::factory()
             ->create(
                 [
-                    'user_id' => $customer->id,
+                    'user_id'            => $customer->id,
                     'investment_plan_id' => $investmentPlan->id,
                 ]
             );
@@ -92,11 +93,11 @@ class WeeklyYieldCustomTest extends TestCase
         // Cria rendimento personalizado para a primeira semana
         $this->actingAs($admin)
             ->post('/admin/rendimentos-semanais', [
-                'period' => $period1,
+                'period'        => $period1,
                 'custom_yields' => [
                     [
                         'customer_plan_id' => $customerPlan->id,
-                        'percent_decimal' => '3.5',
+                        'percent_decimal'  => '3.5',
                     ],
                 ],
                 'recorded_by' => $admin->id,
@@ -104,17 +105,17 @@ class WeeklyYieldCustomTest extends TestCase
             ->assertSessionHas('success');
         $this->assertDatabaseHas('customer_plan_custom_yields', [
             'customer_plan_id' => $customerPlan->id,
-            'period' => $period1,
-            'percent_decimal' => '3.5000',
+            'period'           => $period1,
+            'percent_decimal'  => '3.5000',
         ]);
         // Cria rendimento personalizado para a segunda semana
         $this->actingAs($admin)
             ->post('/admin/rendimentos-semanais', [
-                'period' => $period2,
+                'period'        => $period2,
                 'custom_yields' => [
                     [
                         'customer_plan_id' => $customerPlan->id,
-                        'percent_decimal' => '4.0',
+                        'percent_decimal'  => '4.0',
                     ],
                 ],
                 'recorded_by' => $admin->id,
@@ -122,13 +123,11 @@ class WeeklyYieldCustomTest extends TestCase
             ->assertSessionHas('success');
         $this->assertDatabaseHas('customer_plan_custom_yields', [
             'customer_plan_id' => $customerPlan->id,
-            'period' => $period2,
-            'percent_decimal' => '4.0000',
+            'period'           => $period2,
+            'percent_decimal'  => '4.0000',
         ]);
 
-        dd(CustomerPlanCustomYield::all());
-
         // Verifica que existem dois yields distintos para o mesmo customer_plan
-        $this->assertEquals(2, \App\Models\CustomerPlanCustomYield::where('customer_plan_id', $customerPlan->id)->count());
+        $this->assertEquals(2, CustomerPlanCustomYield::where('customer_plan_id', $customerPlan->id)->count());
     }
 }

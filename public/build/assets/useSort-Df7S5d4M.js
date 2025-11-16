@@ -1,6 +1,0 @@
-import{c as i}from"./createLucideIcon-DTltB1YP.js";import{d as p,f as b}from"./index-9YGKT2P1.js";import{r as n,a as m}from"./app-DQPXqyy6.js";/**
- * @license lucide-react v0.475.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */const y=[["path",{d:"M5 12h14",key:"1ays0h"}],["path",{d:"M12 5v14",key:"s699le"}]],P=i("Plus",y);function M({path:r,initialData:t,onDataChange:e,debounceTime:d=400}){const a=n.useMemo(()=>p(s=>{m.get(r,b(s),{preserveState:!0})},d),[r,d]),f=n.useCallback(s=>{const{name:c,value:S}=s.currentTarget,u={...t,[c]:S};e(u),a(u)},[t,e,a]),o=n.useCallback(s=>{const{name:c,value:S}=s.currentTarget,u={...t,[c]:S};e(u),m.get(r,b(u),{preserveState:!0})},[t,e,r]),l=n.useCallback(s=>{const c={...t,...s};e(c),m.get(r,b(c),{preserveState:!0})},[t,e,r]);return{handleDebounceFilter:f,handleFilter:o,handleClearFilter:l}}function g({sortBy:r,sortDirection:t="asc"}){const[e,d]=n.useState({"sort-by":r,direction:t});return{sort:e,handleSort:o=>{const l={"sort-by":o,direction:e["sort-by"]===o&&e.direction==="asc"?"desc":"asc"};return d(l),l},getSortDirection:o=>e["sort-by"]===o?e.direction:!1}}export{P,g as a,M as u};

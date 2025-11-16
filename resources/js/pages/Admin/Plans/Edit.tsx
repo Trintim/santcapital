@@ -1,11 +1,24 @@
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import AppLayout from "@/layouts/app-layout";
-import { Head, Link, useForm } from "@inertiajs/react";
+import { Head, Link, router, useForm } from "@inertiajs/react";
+import { Trash2 } from "lucide-react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 export default function Edit({ plan }) {
@@ -170,6 +183,9 @@ function LockupOptions({ plan }: any) {
         lockup_days: "" as string,
         is_default: false as boolean,
     });
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [lockupToDelete, setLockupToDelete] = useState<any | null>(null);
+    const cancelRef = useRef<HTMLButtonElement | null>(null);
 
     const submit = (e: any) => {
         e.preventDefault();
@@ -183,6 +199,24 @@ function LockupOptions({ plan }: any) {
             },
         });
     };
+
+    function openDeleteLockup(o: any) {
+        setLockupToDelete(o);
+        setDeleteOpen(true);
+    }
+
+    function destroyLockup() {
+        if (!lockupToDelete) return;
+        router.delete(route("admin.plans.lockups.destroy", { plan: plan.data.id, option: lockupToDelete.id }), {
+            preserveScroll: true,
+            onSuccess: () => toast.success("Opção removida."),
+            onError: () => toast.error("Falha ao remover opção."),
+            onFinish: () => {
+                setDeleteOpen(false);
+                setLockupToDelete(null);
+            },
+        });
+    }
 
     return (
         <Card className="mx-auto mt-6 max-w-4xl">
@@ -198,21 +232,14 @@ function LockupOptions({ plan }: any) {
                                     {o.lockup_days} dias{" "}
                                     {(o.is_default && <span className="ml-2 rounded bg-muted px-2 py-0.5 text-xs">padrão</span>) || ""}
                                 </div>
-
-                                <Button
-                                    variant="destructive"
-                                    size="sm"
-                                    onClick={() => {
-                                        if (confirm("Tem certeza que deseja remover esta opção de carência?")) {
-                                            window.location.href = route("admin.plans.lockups.destroy", {
-                                                plan: plan.data.id,
-                                                option: o.id,
-                                            });
-                                        }
-                                    }}
-                                >
-                                    Remover
-                                </Button>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="destructive" size="icon" onClick={() => openDeleteLockup(o)}>
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Remover opção</TooltipContent>
+                                </Tooltip>
                             </li>
                         ))
                     ) : (
@@ -242,6 +269,25 @@ function LockupOptions({ plan }: any) {
                     </Button>
                 </form>
             </CardContent>
+            <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+                <AlertDialogContent
+                    onOpenAutoFocus={(e) => {
+                        e.preventDefault();
+                        cancelRef.current?.focus();
+                    }}
+                >
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Remover opção de carência?</AlertDialogTitle>
+                        <AlertDialogDescription>Esta ação não poderá ser desfeita. A opção será removida do plano.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel ref={cancelRef}>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={destroyLockup}>
+                            Remover
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </Card>
     );
 }

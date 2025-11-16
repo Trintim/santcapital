@@ -13,11 +13,6 @@ const mainNavItems: NavItem[] = [
         icon: HomeIcon,
     },
     {
-        title: "Rendimentos Mensais",
-        href: "/admin/rendimentos-mensais",
-        icon: ChartCandlestickIcon,
-    },
-    {
         title: "Funcionários",
         href: "/admin/funcionarios",
         icon: UserRoundCheckIcon,

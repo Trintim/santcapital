@@ -65,6 +65,11 @@ class CustomerPlan extends Model
         return $this->hasMany(MoneyTransaction::class);
     }
 
+    public function customYields(): HasMany
+    {
+        return $this->hasMany(CustomerPlanCustomYield::class);
+    }
+
     public function scopeActive($q)
     {
         return $q->where('status', 'active');

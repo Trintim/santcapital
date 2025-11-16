@@ -6,8 +6,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CustomerPlan;
+use App\Models\CustomerPlanCustomYield;
 use App\Models\MoneyTransaction;
-use App\Models\MonthlyYield;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -44,7 +44,7 @@ class DashboardController extends Controller
         $totalInvested = (float) $totals->deposits + (float) $totals->yields - (float) $totals->withdraws;
 
         // 3) Média de rendimentos (12m mais recentes) — retorna DECIMAL cru (ex.: 0.0245)
-        $avgYield12m = MonthlyYield::query()
+        $avgYield12m = CustomerPlanCustomYield::query()
             ->whereDate('period', '>=', $now->subMonths(12)->startOfMonth()->toDateString())
             ->whereDate('period', '<=', $now->endOfDay()->toDateString())
             ->avg('percent_decimal');

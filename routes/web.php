@@ -5,7 +5,6 @@ declare(strict_types = 1);
 use App\Http\Controllers\Admin;
 use App\Http\Controllers\Admin\InvestmentPlanController;
 use App\Http\Controllers\Admin\InvestmentPlanLockupOptionController;
-use App\Http\Controllers\Admin\MonthlyYieldController;
 use App\Http\Controllers\Admin\WeeklyYieldController;
 use App\Http\Controllers\Employee;
 use App\Http\Controllers\Employee\CustomerController;
@@ -34,18 +33,7 @@ Route::middleware(['auth', 'role:admin'])
                 Route::patch('{plan}/toggle', [InvestmentPlanController::class, 'toggleActive'])->name('toggle-active');
                 Route::delete('{plan}', [InvestmentPlanController::class, 'destroy'])->name('destroy');
                 Route::post('{plan}/lockups', [InvestmentPlanLockupOptionController::class, 'store'])->name('lockups.store');
-                Route::delete('{plan}/lockups/{option}/delete', [InvestmentPlanLockupOptionController::class, 'destroy'])->name('lockups.destroy');
-            });
-
-        // Monthly yields
-        Route::prefix('rendimentos-mensais')
-            ->name('monthly-yields.')
-            ->group(function () {
-                Route::get('/', [MonthlyYieldController::class, 'index'])->name('index');
-                Route::post('/', [MonthlyYieldController::class, 'store'])->name('store');
-                Route::post('apply', [MonthlyYieldController::class, 'apply'])->name('apply');
-                Route::delete('{monthlyYield}', [MonthlyYieldController::class, 'destroy'])
-                    ->name('destroy');
+                Route::delete('{plan}/lockups/{option}', [InvestmentPlanLockupOptionController::class, 'destroy'])->name('lockups.destroy');
             });
 
         // Weekly yields
@@ -57,6 +45,8 @@ Route::middleware(['auth', 'role:admin'])
                 Route::post('/', [WeeklyYieldController::class, 'store'])->name('store');
                 Route::get('edit/{id}', [WeeklyYieldController::class, 'edit'])->name('edit');
                 Route::put('update/{id}', [WeeklyYieldController::class, 'update'])->name('update');
+                Route::post('run-job', [WeeklyYieldController::class, 'runJob'])->name('run-job');
+                Route::delete('delete/{id}', [WeeklyYieldController::class, 'destroy'])->name('delete');
             });
 
         // region Employees

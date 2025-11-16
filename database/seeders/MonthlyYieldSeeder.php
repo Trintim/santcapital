@@ -37,3 +37,5 @@ class MonthlyYieldSeeder extends Seeder
         }
     }
 }
+
+// Arquivado: não utilizar mais para testes

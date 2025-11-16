@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Models\CustomerPlanCustomYield;
 use App\Models\MoneyTransaction;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -42,6 +43,15 @@ class DashboardController extends Controller
             ->where('t.status', MoneyTransaction::STATUS_APPROVED)
             ->where('t.type', MoneyTransaction::TYPE_DEPOSIT)
             ->count();
+
+        // Média de rendimentos (12m mais recentes) — retorna DECIMAL cru (ex.: 0.0245)
+        $avgYield12m = CustomerPlanCustomYield::query()
+            ->whereHas('customerPlan', function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            })
+            ->whereDate('period', '>=', $now->subMonths(12)->startOfMonth()->toDateString())
+            ->whereDate('period', '<=', $now->endOfDay()->toDateString())
+            ->avg('percent_decimal');
 
         // === Série MENSAL (12 meses) ===
         $start = $now->copy()->startOfMonth()->subMonths(11); // inclui o mês atual -11
@@ -114,8 +124,9 @@ class DashboardController extends Controller
                 'totalInvestido'   => $totalInvestido,
                 'totalRendimentos' => $totalRendimentos,
             ],
-            'series'    => $series,              // mensal
-            'dimension' => ['mode' => 'month'],  // para o componente
+            'series'      => $series,              // mensal
+            'dimension'   => ['mode' => 'month'],  // para o componente
+            'avgYield12m' => $avgYield12m,      // média de rendimento dos últimos 12 meses
         ]);
     }
 }

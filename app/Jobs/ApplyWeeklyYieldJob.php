@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Jobs;
 
 use App\Models\CustomerPlan;
+use App\Models\InvestmentPlan;
 use App\Models\MoneyTransaction;
 use App\Models\WeeklyYield;
 use Carbon\CarbonImmutable;
@@ -14,6 +15,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
+use Schema;
 
 // Arquivo obsoleto: toda lógica de rendimento agora é semanal e automatizada.
 class ApplyWeeklyYieldJob implements ShouldQueue
@@ -28,8 +30,7 @@ class ApplyWeeklyYieldJob implements ShouldQueue
     public function __construct(
         public int $investmentPlanId,
         public string $period // 'YYYY-MM-DD' (primeiro dia da semana)
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {
@@ -88,15 +89,14 @@ class ApplyWeeklyYieldJob implements ShouldQueue
             $alreadySet = array_flip($alreadyYielded);
 
             $rows    = [];
-            $plan    = \App\Models\InvestmentPlan::findOrFail($this->investmentPlanId);
+            $plan    = InvestmentPlan::findOrFail($this->investmentPlanId);
             $rate    = (float) $weekly->percent_decimal;
-            $minRate = $plan->expected_return_min_decimal ? (float)$plan->expected_return_min_decimal : null;
-            $maxRate = $plan->expected_return_max_decimal ? (float)$plan->expected_return_max_decimal : null;
+            $minRate = $plan->expected_return_min_decimal ? (float) $plan->expected_return_min_decimal : null;
+            $maxRate = $plan->expected_return_max_decimal ? (float) $plan->expected_return_max_decimal : null;
 
-            // Buscar percentuais personalizados (exemplo: tabela customer_plan_custom_yields)
             $customRates = [];
 
-            if (\Schema::hasTable('customer_plan_custom_yields')) {
+            if (Schema::hasTable('customer_plan_custom_yields')) {
                 $customRates = DB::table('customer_plan_custom_yields')
                     ->whereIn('customer_plan_id', $ids)
                     ->where('period', $this->period)

@@ -4,11 +4,15 @@ declare(strict_types = 1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class CustomerPlanCustomYield extends Model
 {
+    use HasFactory;
+
     protected $table = 'customer_plan_custom_yields';
 
     protected $guarded = [];
@@ -21,5 +25,13 @@ class CustomerPlanCustomYield extends Model
     public function recordedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'recorded_by');
+    }
+
+    protected function percentDecimal(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $value * 100,
+            set: fn ($value) => $value / 100,
+        );
     }
 }

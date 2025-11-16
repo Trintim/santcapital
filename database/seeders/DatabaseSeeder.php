@@ -16,7 +16,8 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             UserSeeder::class,
             CustomerPlanSeeder::class,
-            MonthlyYieldSeeder::class,
+            WeeklyYieldSeeder::class,
+            CustomerPlanCustomYieldSeeder::class,
             CustomerPlanAndTransactionsSeeder::class,
         ]);
     }
