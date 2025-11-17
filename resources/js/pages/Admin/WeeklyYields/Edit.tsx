@@ -26,6 +26,7 @@ export default function WeeklyYieldEdit({ customYield, customerPlans }: Props) {
         period: customYield.period,
         percent_decimal: customYield.percent_decimal,
     });
+    console.log(data);
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();

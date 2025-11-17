@@ -54,9 +54,10 @@ export default function WeeklyYieldsIndex({ customYields, filters }: Props & { f
     const [perPage, setPerPage] = useState(data["per-page"]);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [toDelete, setToDelete] = useState<{ id: number; label: string } | null>(null);
-    const [jobLoading, setJobLoading] = useState(false);
     const deleteCancelRef = useRef<HTMLButtonElement | null>(null);
     const hasItems = customYields.data.length > 0;
+
+    console.log(customYields);
 
     const handlePerPage = (perPage: number) => {
         setPerPage(perPage);
@@ -82,23 +83,6 @@ export default function WeeklyYieldsIndex({ customYields, filters }: Props & { f
             onError: () => toast.error("Erro ao remover rendimento. Tente novamente."),
             onFinish: () => setConfirmOpen(false),
         });
-    };
-
-    const handleRunJob = () => {
-        setJobLoading(true);
-        router.post(
-            route("admin.weekly-yields.run-job"),
-            {},
-            {
-                preserveState: true,
-                onSuccess: () => {
-                    toast.success("Job semanal disparado com sucesso!");
-                    window.location.reload();
-                },
-                onError: () => toast.error("Erro ao executar job semanal."),
-                onFinish: () => setJobLoading(false),
-            },
-        );
     };
 
     return (
@@ -128,9 +112,6 @@ export default function WeeklyYieldsIndex({ customYields, filters }: Props & { f
                                 {" "}
                                 <Button>Cadastrar rendimento</Button>{" "}
                             </Link>
-                            <Button variant="outline" disabled={jobLoading} onClick={handleRunJob}>
-                                {jobLoading ? "Executando..." : "Testar Job Semanal"}
-                            </Button>
                         </div>
                     </div>
                     {hasItems ? (
