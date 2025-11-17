@@ -23,6 +23,11 @@ class CustomerPlanController extends Controller
         $search    = $request->validated('search');
         $perPage   = $request->validated('per-page', 15);
 
+        $validSorts = ['id', 'user_id', 'investment_plan_id', 'chosen_lockup_days', 'activated_on', 'status', 'created_at'];
+        if (!in_array($sortBy, $validSorts, true)) {
+            $sortBy = 'id';
+        }
+
         $pagination = CustomerPlanResource::collection(
             CustomerPlan::query()
                 ->with(['customer', 'plan'])

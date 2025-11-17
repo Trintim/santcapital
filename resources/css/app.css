@@ -2,6 +2,14 @@
 
 @plugin 'tailwindcss-animate';
 
+:root {
+  --font-dashboard: 'Montserrat', 'Inter', 'Roboto', 'Lato', 'IBM Plex Sans', 'Source Sans Pro', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+body {
+  font-family: var(--font-dashboard);
+}
+
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 

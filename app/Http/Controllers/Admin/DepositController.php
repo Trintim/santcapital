@@ -24,6 +24,11 @@ class DepositController extends Controller
         $search    = $request->validated('search');
         $perPage   = $request->validated('per-page', 15);
 
+        $validSorts = ['id', 'amount', 'effective_date', 'status', 'created_at'];
+        if (!in_array($sortBy, $validSorts, true)) {
+            $sortBy = 'id';
+        }
+
         $pagination = MoneyTransactionResource::collection(
             MoneyTransaction::query()
                 ->with(['customerPlan.customer', 'customerPlan.plan'])

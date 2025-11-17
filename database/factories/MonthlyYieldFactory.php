@@ -29,3 +29,5 @@ class MonthlyYieldFactory extends Factory
         ];
     }
 }
+
+// Arquivado: não utilizar mais para testes

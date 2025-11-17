@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Employee;
 use App\Http\Controllers\Controller;
 use App\Models\CustomerPlan;
 use App\Models\MoneyTransaction;
-use App\Models\MonthlyYield;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -43,11 +42,42 @@ class DashboardController extends Controller
 
         $totalInvested = (float) $totals->deposits + (float) $totals->yields - (float) $totals->withdraws;
 
-        // 3) Média de rendimentos (12m mais recentes) — retorna DECIMAL cru (ex.: 0.0245)
-        $avgYield12m = MonthlyYield::query()
-            ->whereDate('period', '>=', $now->subMonths(12)->startOfMonth()->toDateString())
-            ->whereDate('period', '<=', $now->endOfDay()->toDateString())
-            ->avg('percent_decimal');
+        // 3) Média de rendimentos (12m mais recentes) — considera custom e padrão
+        $plans = DB::table('customer_plans')->pluck('id');
+        $weeks = DB::table('weekly_yields')
+            ->select('period')
+            ->whereBetween('period', [$now->subMonths(12)->startOfWeek()->toDateString(), $now->endOfWeek()->toDateString()])
+            ->groupBy('period')
+            ->orderBy('period')
+            ->get();
+        $totalYield = 0;
+        $countYield = 0;
+
+        foreach ($plans as $planId) {
+            foreach ($weeks as $week) {
+                $custom = DB::table('customer_plan_custom_yields')
+                    ->where('customer_plan_id', $planId)
+                    ->where('period', $week->period)
+                    ->value('percent_decimal');
+
+                if ($custom !== null) {
+                    $totalYield += (float) $custom;
+                    $countYield++;
+                } else {
+                    $plan    = DB::table('customer_plans')->where('id', $planId)->first();
+                    $default = DB::table('weekly_yields')
+                        ->where('investment_plan_id', $plan->investment_plan_id)
+                        ->where('period', $week->period)
+                        ->value('percent_decimal');
+
+                    if ($default !== null) {
+                        $totalYield += (float) $default;
+                        $countYield++;
+                    }
+                }
+            }
+        }
+        $avgYield12m = $countYield > 0 ? $totalYield / $countYield : null;
 
         // 4) Saques pendentes (count + total)
         $pendingWithdrawalsCount = MoneyTransaction::query()

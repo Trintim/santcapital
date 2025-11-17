@@ -25,7 +25,7 @@ export default function Create({ customers, plans }: { customers: ClientResource
 
     // opções dos combobox
     const customerItems: ComboItem[] = useMemo(
-        () => customers.map((c: any) => ({ value: String(c.id), label: `${c.name} — ${c.email}`, meta: c })),
+        () => customers.map((c: ClientResource) => ({ value: String(c.id), label: `${c.name} — ${c.email}`, meta: c })),
         [customers],
     );
 
@@ -92,7 +92,7 @@ export default function Create({ customers, plans }: { customers: ClientResource
                             <Label>Plano</Label>
                             <ComboBox
                                 value={String(data.investment_plan_id || "")}
-                                onChange={(v, picked) => setData("investment_plan_id", v)}
+                                onChange={(v) => setData("investment_plan_id", v)}
                                 items={planItems}
                                 placeholder="Selecione o plano…"
                                 searchPlaceholder="Buscar plano…"

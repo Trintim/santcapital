@@ -2,9 +2,15 @@
 
 declare(strict_types = 1);
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use App\Console\Commands\ApplyWeeklyYieldsCommand;
+use App\Console\Commands\DayProgressCommand;
+use Illuminate\Console\Scheduling\Schedule as ScheduleAlias;
+use Illuminate\Support\Facades\Schedule;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+Schedule::command(ApplyWeeklyYieldsCommand::class)
+    ->weeklyOn(ScheduleAlias::SUNDAY, '00:00') // toda segunda-feira à meia-noite
+    ->withoutOverlapping();
+
+Schedule::command(DayProgressCommand::class)
+    ->everyMinute()
+    ->withoutOverlapping();

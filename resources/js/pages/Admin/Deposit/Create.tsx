@@ -23,7 +23,7 @@ export default function Create({ customerPlans }) {
 
     const cpItems = useMemo(
         () =>
-            customerPlans.map((cp: any) => ({
+            customerPlans.map((cp: { id: number; customer?: { name?: string }; plan?: { name?: string }; status?: string }) => ({
                 value: String(cp.id),
                 label: `${cp.customer?.name} — ${cp.plan?.name}${cp.status === "pre_active" ? " (pré-ativo)" : ""}`,
             })),

@@ -16,7 +16,7 @@ class IndexRequest extends FormRequest
         return [
             'search'    => ['nullable', 'string'],
             'per-page'  => ['nullable', 'integer', new PerPageRule()],
-            'sort-by'   => ['sometimes', 'string', Rule::in(['name', 'email'])],
+            'sort-by'   => ['sometimes', 'string', Rule::in(['id', 'user_id', 'investment_plan_id', 'chosen_lockup_days', 'activated_on', 'status', 'created_at'])],
             'direction' => ['sometimes', 'string', Rule::enum(SortDirection::class)],
         ];
     }

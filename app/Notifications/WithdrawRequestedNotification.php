@@ -28,8 +28,9 @@ class WithdrawRequestedNotification extends Notification implements ShouldQueue
 
     public function toMail($notifiable): MailMessage
     {
-        $c    = $this->customerPlan->customer; // se tiver relação 'customer' -> User
-        $plan = $this->customerPlan->plan;
+        $c         = $this->customerPlan->customer; // se tiver relação 'customer' -> User
+        $plan      = $this->customerPlan->plan;
+        $routeName = $notifiable->hasRole('admin') ? 'admin.deposits.index' : 'employee.deposits.index';
 
         return (new MailMessage())
             ->subject('Nova solicitação de saque')
@@ -39,7 +40,7 @@ class WithdrawRequestedNotification extends Notification implements ShouldQueue
             ->line('Valor solicitado: R$ ' . number_format($this->amount, 2, ',', '.'))
             ->line('Dados para pagamento:')
             ->line(json_encode($this->bankData, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT))
-            ->action('Abrir depósitos/saques', url()->route('admin.deposits.index')) // ajuste se tiver filtro
+            ->action('Abrir depósitos/saques', url()->route($routeName))
             ->line('Aguardando aprovação/reprovação no painel.');
     }
 }

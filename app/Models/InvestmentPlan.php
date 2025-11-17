@@ -63,4 +63,9 @@ class InvestmentPlan extends Model
     {
         return $this->hasMany(InvestmentPlanLockupOption::class);
     }
+
+    public function weeklyYields(): HasMany
+    {
+        return $this->hasMany(WeeklyYield::class, 'investment_plan_id');
+    }
 }

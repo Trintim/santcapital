@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown } from "lucide-react";
 import * as React from "react";
 
-export type ComboItem = { value: string; label: string; meta?: any };
+export type ComboItem = { value: string; label: string; meta?: unknown }; // Substituído 'any' por 'unknown' para tipagem mais segura
 
 type Props = {
     value: string;

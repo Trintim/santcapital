@@ -6,7 +6,7 @@ import { Head } from "@inertiajs/react";
 
 interface Props {
     pagination: PaginationData<CustomerPlanResource>;
-    filters: any;
+    filters: Record<string, string | number>;
 }
 
 export default function Index({ pagination, filters }: Props) {

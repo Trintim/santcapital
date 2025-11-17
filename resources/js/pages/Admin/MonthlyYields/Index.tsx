@@ -55,7 +55,7 @@ export default function MonthlyYieldsIndex({
     const { data: filterData, setData: setFilterData } = useForm({
         per_page: Number(filters?.per_page ?? 15),
     });
-    const go = (patch: Record<string, any>) => {
+    const go = (patch: Record<string, string | number | boolean>) => {
         router.get(route("admin.monthly-yields.index"), { ...filterData, ...patch }, { preserveScroll: true, preserveState: true });
     };
     const setPerPage = (pp: number) => {

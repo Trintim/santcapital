@@ -25,7 +25,7 @@ class WithdrawalApprovedNotification extends Notification implements ShouldQueue
 
     public function toMail($notifiable): MailMessage
     {
-        $valor = number_format($this->tx->amount, 2, ',', '.');
+        $valor = number_format((float) $this->tx->amount, 2, ',', '.');
 
         return (new MailMessage())
             ->subject('Seu saque foi aprovado')

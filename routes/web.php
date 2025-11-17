@@ -5,7 +5,7 @@ declare(strict_types = 1);
 use App\Http\Controllers\Admin;
 use App\Http\Controllers\Admin\InvestmentPlanController;
 use App\Http\Controllers\Admin\InvestmentPlanLockupOptionController;
-use App\Http\Controllers\Admin\MonthlyYieldController;
+use App\Http\Controllers\Admin\WeeklyYieldController;
 use App\Http\Controllers\Employee;
 use App\Http\Controllers\Employee\CustomerController;
 use App\Http\Controllers\Employee\CustomerPlanController;
@@ -33,18 +33,20 @@ Route::middleware(['auth', 'role:admin'])
                 Route::patch('{plan}/toggle', [InvestmentPlanController::class, 'toggleActive'])->name('toggle-active');
                 Route::delete('{plan}', [InvestmentPlanController::class, 'destroy'])->name('destroy');
                 Route::post('{plan}/lockups', [InvestmentPlanLockupOptionController::class, 'store'])->name('lockups.store');
-                Route::delete('{plan}/lockups/{option}/delete', [InvestmentPlanLockupOptionController::class, 'destroy'])->name('lockups.destroy');
+                Route::delete('{plan}/lockups/{option}', [InvestmentPlanLockupOptionController::class, 'destroy'])->name('lockups.destroy');
             });
 
-        // Monthly yields
-        Route::prefix('rendimentos-mensais')
-            ->name('monthly-yields.')
+        // Weekly yields
+        Route::prefix('rendimentos-semanais')
+            ->name('weekly-yields.')
             ->group(function () {
-                Route::get('/', [MonthlyYieldController::class, 'index'])->name('index');
-                Route::post('/', [MonthlyYieldController::class, 'store'])->name('store');
-                Route::post('apply', [MonthlyYieldController::class, 'apply'])->name('apply');
-                Route::delete('{monthlyYield}', [MonthlyYieldController::class, 'destroy'])
-                    ->name('destroy');
+                Route::get('/', [WeeklyYieldController::class, 'index'])->name('index');
+                Route::get('create', [WeeklyYieldController::class, 'create'])->name('create');
+                Route::post('/', [WeeklyYieldController::class, 'store'])->name('store');
+                Route::get('edit/{id}', [WeeklyYieldController::class, 'edit'])->name('edit');
+                Route::put('update/{id}', [WeeklyYieldController::class, 'update'])->name('update');
+                Route::post('run-job', [WeeklyYieldController::class, 'runJob'])->name('run-job');
+                Route::delete('delete/{id}', [WeeklyYieldController::class, 'destroy'])->name('delete');
             });
 
         // region Employees
@@ -155,6 +157,9 @@ Route::middleware(['auth', 'role:customer'])
         // Solicitação de saque (cria transação PENDING TYPE_WITHDRAWAL)
         Route::post('saques', [App\Http\Controllers\Customer\WithdrawalController::class, 'store'])
             ->name('withdrawals.store');
+
+        Route::post('dashboard/export-pdf', [App\Http\Controllers\Customer\DashboardController::class, 'exportPdf'])
+            ->name('dashboard.export-pdf');
     });
 
 require __DIR__ . '/settings.php';

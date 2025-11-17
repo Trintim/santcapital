@@ -2,7 +2,7 @@ import { NavMain } from "@/components/nav-main";
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { type NavItem, type SharedData } from "@/types";
 import { Link, usePage } from "@inertiajs/react";
-import { ChartCandlestickIcon, HandCoinsIcon, HomeIcon, TagIcon, UserPenIcon, UserRoundCheckIcon, UsersIcon } from "lucide-react";
+import { ChartCandlestickIcon, ChartLineIcon, HandCoinsIcon, HomeIcon, TagIcon, UserPenIcon, UserRoundCheckIcon, UsersIcon } from "lucide-react";
 import LogoAzul from "./logo-azul";
 import LogoBranca from "./logo-branca";
 
@@ -11,11 +11,6 @@ const mainNavItems: NavItem[] = [
         title: "Dashboard",
         href: "/admin",
         icon: HomeIcon,
-    },
-    {
-        title: "Rendimentos Mensais",
-        href: "/admin/rendimentos-mensais",
-        icon: ChartCandlestickIcon,
     },
     {
         title: "Funcionários",
@@ -46,6 +41,11 @@ const mainNavItems: NavItem[] = [
         title: "Solicitações de Saque",
         href: "/admin/saques",
         icon: ChartCandlestickIcon,
+    },
+    {
+        title: "Rendimentos Semanais",
+        href: "/admin/rendimentos-semanais",
+        icon: ChartLineIcon,
     },
 ];
 

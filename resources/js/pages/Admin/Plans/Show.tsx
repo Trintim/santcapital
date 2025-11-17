@@ -19,6 +19,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import AppLayout from "@/layouts/app-layout";
 import { Head } from "@inertiajs/react";
 
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ArrowLeft, CheckCircle2, Pencil, Trash2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -32,16 +33,16 @@ type Plan = {
     id: number;
     name: string;
     description?: string | null;
-    lockup_days: number | null;
+    lockup_days: string | number | null;
     minimum_deposit_amount: number;
-    contract_term_months?: number | null;
-    expected_return_min_decimal?: number | null;
-    expected_return_max_decimal?: number | null;
-    extra_bonus_percent_on_capital_decimal?: number | null;
+    contract_term_months?: string | number | null;
+    expected_return_min_decimal?: string | number | null;
+    expected_return_max_decimal?: string | number | null;
+    extra_bonus_percent_on_capital_decimal?: string | number | null;
     withdrawal_only_at_maturity: boolean;
-    guaranteed_min_multiplier_after_24m?: number | null;
+    guaranteed_min_multiplier_after_24m?: string | number | null;
     is_active: boolean;
-    lockupOptions?: LockupOption[];
+    lockup_options?: LockupOption[];
 };
 
 type Recent = {
@@ -59,18 +60,22 @@ export default function PlanShow({
     recentActivity,
 }: {
     plan: Plan;
-    metrics: { activeCount: number; totalCount: number; totalInvested: number };
+    metrics: { activeCount: number; totalCount: number; totalInvested: string | number };
     recentActivity: Recent[];
 }) {
     const [deleteOpen, setDeleteOpen] = useState(false);
     const cancelRef = useRef<HTMLButtonElement | null>(null);
 
-    const fmtBRL = (n?: number | null) =>
-        typeof n === "number" ? `R$ ${n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—";
+    const [lockupDeleteOpen, setLockupDeleteOpen] = useState(false);
+    const [lockupToDelete, setLockupToDelete] = useState<LockupOption | null>(null);
+    const lockupDeleteCancelRef = useRef<HTMLButtonElement | null>(null);
 
-    const fmtPct = (d?: number | null) =>
-        typeof d === "number" ? `${(d * 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%` : "—";
-
+    const fmtBRL = (n?: string | number | null) =>
+        typeof n === "number" || typeof n === "string"
+            ? `R$ ${Number(n).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : "—";
+    const fmtPct = (d?: string | number | null) =>
+        d !== null && d !== undefined ? `${(Number(d) * 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%` : "—";
     const goBack = () => router.visit(route("admin.plans.index"));
 
     const toggleActive = () => {
@@ -97,6 +102,24 @@ export default function PlanShow({
             onFinish: () => setDeleteOpen(false),
         });
     };
+
+    function openLockupDelete(opt: LockupOption) {
+        setLockupToDelete(opt);
+        setLockupDeleteOpen(true);
+    }
+
+    function destroyLockup() {
+        if (!lockupToDelete) return;
+        router.delete(route("admin.plans.lockups.destroy", { plan: plan.id, option: lockupToDelete.id }), {
+            preserveScroll: true,
+            onSuccess: () => toast.success("Opção removida."),
+            onError: () => toast.error("Falha ao remover opção."),
+            onFinish: () => {
+                setLockupDeleteOpen(false);
+                setLockupToDelete(null);
+            },
+        });
+    }
 
     return (
         <AppLayout>
@@ -185,7 +208,8 @@ export default function PlanShow({
                             <div>
                                 <div className="text-xs text-muted-foreground">Garantia mínima (24m)</div>
                                 <div className="text-base font-medium">
-                                    {typeof plan.guaranteed_min_multiplier_after_24m === "number"
+                                    {typeof plan.guaranteed_min_multiplier_after_24m === "number" ||
+                                    typeof plan.guaranteed_min_multiplier_after_24m === "string"
                                         ? `${plan.guaranteed_min_multiplier_after_24m}x`
                                         : "—"}
                                 </div>
@@ -236,8 +260,8 @@ export default function PlanShow({
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {plan.lockupOptions?.length ? (
-                                        plan.lockupOptions.map((opt) => (
+                                    {plan.lockup_options?.data.length ? (
+                                        plan.lockup_options.data.map((opt) => (
                                             <TableRow key={opt.id} className="hover:!bg-secondary/10">
                                                 <TableCell>{opt.id}</TableCell>
                                                 <TableCell>{opt.lockup_days}</TableCell>
@@ -245,21 +269,14 @@ export default function PlanShow({
                                                     {opt.is_default ? <Badge>Sim</Badge> : <span className="text-muted-foreground">Não</span>}
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    {/* Remoção de lockup opcional (se quiser habilitar) */}
-                                                    {/* <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() =>
-                              router.delete(route("admin.plans.lockups.destroy", { plan: plan.id, option: opt.id }), {
-                                preserveScroll: true,
-                                onSuccess: () => toast.success("Opção removida."),
-                                onError: () => toast.error("Falha ao remover opção."),
-                              })
-                            }
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button> */}
-                                                    <span className="text-muted-foreground">—</span>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button variant="destructive" size="icon" onClick={() => openLockupDelete(opt)}>
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>Remover opção</TooltipContent>
+                                                    </Tooltip>
                                                 </TableCell>
                                             </TableRow>
                                         ))
@@ -354,6 +371,27 @@ export default function PlanShow({
                     <AlertDialogFooter>
                         <AlertDialogCancel ref={cancelRef}>Cancelar</AlertDialogCancel>
                         <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={destroy}>
+                            Remover
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Dialog de remover opção de carência */}
+            <AlertDialog open={lockupDeleteOpen} onOpenChange={setLockupDeleteOpen}>
+                <AlertDialogContent
+                    onOpenAutoFocus={(e) => {
+                        e.preventDefault();
+                        lockupDeleteCancelRef.current?.focus();
+                    }}
+                >
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Remover opção de carência?</AlertDialogTitle>
+                        <AlertDialogDescription>Esta ação não poderá ser desfeita. A opção será removida do plano.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel ref={lockupDeleteCancelRef}>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={destroyLockup}>
                             Remover
                         </AlertDialogAction>
                     </AlertDialogFooter>
