@@ -54,7 +54,6 @@ export default function WeeklyYieldsIndex({ customYields, filters }: Props & { f
     const [perPage, setPerPage] = useState(data["per-page"]);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [toDelete, setToDelete] = useState<{ id: number; label: string } | null>(null);
-    const [jobLoading, setJobLoading] = useState(false);
     const deleteCancelRef = useRef<HTMLButtonElement | null>(null);
     const hasItems = customYields.data.length > 0;
 
