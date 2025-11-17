@@ -29,7 +29,7 @@ export default function Edit({ employee }) {
 
     function submit(e: FormEvent) {
         e.preventDefault();
-        put(route("admin.employees.update", { employee: employee.id }), {
+        put(route("admin.employees.update", { employee: employee.data.id }), {
             onSuccess: () => {
                 toast.success("Funcionário atualizado com sucesso.");
             },

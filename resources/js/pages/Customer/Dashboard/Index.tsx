@@ -31,7 +31,7 @@ type Props = {
 export default function Dashboard({ kpis, series }: Props) {
     const fmtBRL = (n?: number) =>
         typeof n === "number" ? `R$ ${n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—";
-    console.log(kpis);
+
     const [loading, setLoading] = useState(false);
     const handleExport = async () => {
         setLoading(true);

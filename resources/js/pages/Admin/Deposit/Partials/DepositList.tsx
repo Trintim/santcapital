@@ -13,16 +13,47 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useFilter } from "@/hooks/useFilter";
 import { useSort } from "@/hooks/useSort";
+import type { SortDirection } from "@/types";
 import { filterQueryParams } from "@/utils";
 import { router, useForm } from "@inertiajs/react";
 import { CheckCircle2, MoreHorizontal, PlusIcon, Search, Trash2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { route } from "ziggy-js";
 
-export function DepositList({ pagination, filters }) {
-    const { data, setData } = useForm({
+export interface Deposit {
+    id: number;
+    amount: number;
+    effective_date: string;
+    status: string;
+    created_at: string;
+    customer_plan?: {
+        customer?: {
+            name?: string;
+            email?: string;
+        };
+        plan?: {
+            name?: string;
+        };
+    };
+}
+
+export interface DepositPagination {
+    data: Deposit[];
+    meta: any;
+}
+
+export interface DepositFilters {
+    [key: string]: string | number | undefined;
+    search?: string;
+    "per-page"?: number;
+    "sort-by"?: string;
+    direction?: SortDirection;
+}
+
+export function DepositList({ pagination, filters }: { pagination: DepositPagination; filters: DepositFilters }) {
+    const { data, setData } = useForm<DepositFilters>({
         search: filters.search || "",
-        "per-page": filters["per-page"] || 15,
+        "per-page": typeof filters["per-page"] === "number" ? filters["per-page"] : 15,
     });
 
     const { handleDebounceFilter } = useFilter({
@@ -32,7 +63,7 @@ export function DepositList({ pagination, filters }) {
     });
 
     const { handleSort, getSortDirection } = useSort({
-        sortBy: filters["sort-by"] || "name",
+        sortBy: filters["sort-by"] || "id",
         sortDirection: filters.direction || "asc",
     });
 
@@ -129,16 +160,25 @@ export function DepositList({ pagination, filters }) {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>ID</TableHead>
-                                <TableHead sortable sortBy={"name"} sortDirection={getSortDirection("name")} onSort={handleOnSort}>
-                                    Cliente
+                                <TableHead sortable sortBy={"id"} sortDirection={getSortDirection("id")} onSort={handleOnSort}>
+                                    ID
                                 </TableHead>
-                                <TableHead sortable sortBy={"email"} sortDirection={getSortDirection("email")} onSort={handleOnSort}>
-                                    Plano
+                                <TableHead>Cliente</TableHead>
+                                <TableHead>Plano</TableHead>
+                                <TableHead sortable sortBy={"amount"} sortDirection={getSortDirection("amount")} onSort={handleOnSort}>
+                                    Valor
                                 </TableHead>
-                                <TableHead>Valor</TableHead>
-                                <TableHead>Data</TableHead>
-                                <TableHead>Status</TableHead>
+                                <TableHead
+                                    sortable
+                                    sortBy={"effective_date"}
+                                    sortDirection={getSortDirection("effective_date")}
+                                    onSort={handleOnSort}
+                                >
+                                    Data
+                                </TableHead>
+                                <TableHead sortable sortBy={"status"} sortDirection={getSortDirection("status")} onSort={handleOnSort}>
+                                    Status
+                                </TableHead>
                                 <TableHead>
                                     <span className="sr-only">Ações</span>
                                 </TableHead>
@@ -153,7 +193,7 @@ export function DepositList({ pagination, filters }) {
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                pagination.data.map((t, index) => (
+                                pagination.data.map((t: Deposit, index: number) => (
                                     <TableRow className={"hover:!bg-secondary/10"} key={String(t.id)}>
                                         <TableCell>{index + 1}</TableCell>
                                         <TableCell className={"max-w-32 truncate"}>
@@ -226,7 +266,7 @@ export function DepositList({ pagination, filters }) {
                 </div>
             </div>
 
-            <Paginate meta={pagination?.meta} perPage={data["per-page"]} setPerPage={handlePerPage} />
+            <Paginate meta={pagination?.meta} perPage={Number(data["per-page"])} setPerPage={handlePerPage} />
         </div>
     );
 }

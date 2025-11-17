@@ -44,7 +44,7 @@ type Props = {
     customYields: { data: CustomYield[]; meta: PaginationMeta };
 };
 
-export default function WeeklyYieldsIndex({ customYields, filters }: Props & { filters: any }) {
+export default function WeeklyYieldsIndex({ customYields, filters }: Props & { filters: Record<string, string | number> }) {
     const { data, setData } = useForm({
         search: filters?.search || "",
         "per-page": filters?.["per-page"] || 15,
@@ -60,12 +60,12 @@ export default function WeeklyYieldsIndex({ customYields, filters }: Props & { f
 
     const handlePerPage = (perPage: number) => {
         setPerPage(perPage);
-        setData((prev: any) => ({ ...prev, "per-page": perPage }));
+        setData((prev: typeof data) => ({ ...prev, "per-page": perPage }));
         window.location.href = route("admin.weekly-yields.index", { ...data, "per-page": perPage });
     };
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setData((prev: any) => ({ ...prev, search: e.target.value }));
+        setData((prev: typeof data) => ({ ...prev, search: e.target.value }));
         window.location.href = route("admin.weekly-yields.index", { ...data, search: e.target.value });
     };
 

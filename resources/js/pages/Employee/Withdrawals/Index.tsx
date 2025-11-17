@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import AppLayout from "@/layouts/app-layout";
+import { PaginationData } from "@/types/pagination";
 import { Head, router, useForm } from "@inertiajs/react";
 import { CheckCircle, MoreHorizontal, XCircle } from "lucide-react";
 import * as React from "react";
@@ -40,7 +41,7 @@ type Withdrawal = {
 };
 
 type PageProps = {
-    withdrawals: { data: Withdrawal[]; meta?: any };
+    withdrawals: { data: Withdrawal[]; meta?: PaginationData<Withdrawal>["meta"] };
     filters: { status: string; per_page: number };
 };
 
@@ -54,7 +55,7 @@ export default function Index({ withdrawals, filters }: PageProps) {
         per_page: Number(filters.per_page || 15),
     });
 
-    const go = (patch: Record<string, any>) => {
+    const go = (patch: Record<string, string | number>) => {
         router.get(route("employee.withdrawals.index"), { ...data, ...patch }, { preserveScroll: true, preserveState: true });
     };
 
@@ -238,7 +239,22 @@ export default function Index({ withdrawals, filters }: PageProps) {
                     </Table>
                 </div>
                 <div className="mt-3">
-                    <Paginate meta={withdrawals?.meta} perPage={data.per_page} setPerPage={setPerPage} />
+                    <Paginate
+                        meta={
+                            withdrawals.meta ?? {
+                                total: 0,
+                                per_page: 15,
+                                current_page: 1,
+                                last_page: 1,
+                                links: [],
+                                path: "",
+                                from: null,
+                                to: null,
+                            }
+                        }
+                        perPage={data.per_page}
+                        setPerPage={setPerPage}
+                    />
                 </div>
             </div>
 

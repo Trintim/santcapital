@@ -43,7 +43,7 @@ export default function Index({ plans, deposits, statement, filters }: PageProps
     const depForm = useForm({ dep_per_page: Number(filters.dep_per_page || 10) });
     const txForm = useForm({ tx_per_page: Number(filters.tx_per_page || 10) });
 
-    const goWith = (params: Record<string, any>) => {
+    const goWith = (params: Record<string, string | number | boolean>) => {
         router.get(route("customer.deposits.index"), filterQueryParams(params), {
             preserveState: true,
             preserveScroll: true,

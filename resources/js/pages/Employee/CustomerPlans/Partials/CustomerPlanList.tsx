@@ -142,7 +142,10 @@ export function CustomerPlanList({ pagination, filters }: Props) {
                                             <TableCell>
                                                 <StatusBadge status={cp.status} />
                                             </TableCell>
-                                            <TableCell>{formatDate(cp.activated_on)}</TableCell>
+                                            <TableCell>
+                                                {console.log(cp)}
+                                                {formatDate(cp.activated_on)}
+                                            </TableCell>
 
                                             <TableCell className="text-right">
                                                 <DropdownMenu open={isMenuOpen} onOpenChange={(open) => setMenuOpenId(open ? cp.id : null)}>

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Http\Requests\Admin\Employee;
 
+use App\Enums\Auth\Role;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -11,7 +12,7 @@ class UpdateEmployeeRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->hasRole('Admin') ?? false;
+        return $this->user()?->hasRole(Role::Admin) ?? false;
     }
 
     protected function prepareForValidation(): void

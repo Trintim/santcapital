@@ -33,14 +33,14 @@ type Plan = {
     id: number;
     name: string;
     description?: string | null;
-    lockup_days: number | null;
+    lockup_days: string | number | null;
     minimum_deposit_amount: number;
-    contract_term_months?: number | null;
-    expected_return_min_decimal?: number | null;
-    expected_return_max_decimal?: number | null;
-    extra_bonus_percent_on_capital_decimal?: number | null;
+    contract_term_months?: string | number | null;
+    expected_return_min_decimal?: string | number | null;
+    expected_return_max_decimal?: string | number | null;
+    extra_bonus_percent_on_capital_decimal?: string | number | null;
     withdrawal_only_at_maturity: boolean;
-    guaranteed_min_multiplier_after_24m?: number | null;
+    guaranteed_min_multiplier_after_24m?: string | number | null;
     is_active: boolean;
     lockup_options?: LockupOption[];
 };
@@ -60,7 +60,7 @@ export default function PlanShow({
     recentActivity,
 }: {
     plan: Plan;
-    metrics: { activeCount: number; totalCount: number; totalInvested: number };
+    metrics: { activeCount: number; totalCount: number; totalInvested: string | number };
     recentActivity: Recent[];
 }) {
     const [deleteOpen, setDeleteOpen] = useState(false);
@@ -70,12 +70,12 @@ export default function PlanShow({
     const [lockupToDelete, setLockupToDelete] = useState<LockupOption | null>(null);
     const lockupDeleteCancelRef = useRef<HTMLButtonElement | null>(null);
 
-    const fmtBRL = (n?: number | null) =>
-        typeof n === "number" ? `R$ ${n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—";
-
-    const fmtPct = (d?: number | null) =>
-        typeof d === "number" ? `${(d * 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%` : "—";
-
+    const fmtBRL = (n?: string | number | null) =>
+        typeof n === "number" || typeof n === "string"
+            ? `R$ ${Number(n).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : "—";
+    const fmtPct = (d?: string | number | null) =>
+        d !== null && d !== undefined ? `${(Number(d) * 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%` : "—";
     const goBack = () => router.visit(route("admin.plans.index"));
 
     const toggleActive = () => {
@@ -208,7 +208,8 @@ export default function PlanShow({
                             <div>
                                 <div className="text-xs text-muted-foreground">Garantia mínima (24m)</div>
                                 <div className="text-base font-medium">
-                                    {typeof plan.guaranteed_min_multiplier_after_24m === "number"
+                                    {typeof plan.guaranteed_min_multiplier_after_24m === "number" ||
+                                    typeof plan.guaranteed_min_multiplier_after_24m === "string"
                                         ? `${plan.guaranteed_min_multiplier_after_24m}x`
                                         : "—"}
                                 </div>

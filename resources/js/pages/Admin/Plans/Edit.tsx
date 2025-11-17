@@ -18,7 +18,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import AppLayout from "@/layouts/app-layout";
 import { Head, Link, router, useForm } from "@inertiajs/react";
 import { Trash2 } from "lucide-react";
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { toast } from "sonner";
 
 export default function Edit({ plan }) {
@@ -36,7 +36,7 @@ export default function Edit({ plan }) {
         is_active: !!plan.data.is_active,
     });
 
-    function submit(e: any) {
+    function submit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         put(route("admin.plans.update", { plan: plan.data.id }), {
             onSuccess: () => {
@@ -178,16 +178,16 @@ export default function Edit({ plan }) {
     );
 }
 
-function LockupOptions({ plan }: any) {
+function LockupOptions({ plan }: { plan: any }) {
     const { data, setData, post, processing, errors } = useForm({
         lockup_days: "" as string,
         is_default: false as boolean,
     });
     const [deleteOpen, setDeleteOpen] = useState(false);
-    const [lockupToDelete, setLockupToDelete] = useState<any | null>(null);
+    const [lockupToDelete, setLockupToDelete] = useState<{ id: number; lockup_days: number; is_default: boolean } | null>(null);
     const cancelRef = useRef<HTMLButtonElement | null>(null);
 
-    const submit = (e: any) => {
+    const submit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         post(route("admin.plans.lockups.store", { plan: plan.data.id }), {
             preserveScroll: true,
@@ -200,7 +200,7 @@ function LockupOptions({ plan }: any) {
         });
     };
 
-    function openDeleteLockup(o: any) {
+    function openDeleteLockup(o: { id: number; lockup_days: number; is_default: boolean }) {
         setLockupToDelete(o);
         setDeleteOpen(true);
     }
@@ -226,7 +226,7 @@ function LockupOptions({ plan }: any) {
             <CardContent className="space-y-3">
                 <ul className="divide-y rounded border">
                     {plan.data.lockup_options?.length > 0 ? (
-                        plan.data.lockup_options.map((o: any) => (
+                        plan.data.lockup_options.map((o: { id: number; lockup_days: number; is_default: boolean }) => (
                             <li key={o.id} className="flex items-center justify-between p-3">
                                 <div>
                                     {o.lockup_days} dias{" "}

@@ -46,7 +46,17 @@ type ProfileForm = {
 } & Partial<CustomerAdditional> &
     Partial<EmployeeAdditional>;
 
-export default function Profile({ user, role, additional }: { mustVerifyEmail: boolean; status?: string; user: any; role: string; additional: any }) {
+export default function Profile({
+    user,
+    role,
+    additional,
+}: {
+    mustVerifyEmail: boolean;
+    status?: string;
+    user: ProfileForm;
+    role: string;
+    additional: CustomerAdditional | EmployeeAdditional;
+}) {
     const { auth } = usePage<SharedData>().props;
 
     const initialData: ProfileForm = {
@@ -61,7 +71,6 @@ export default function Profile({ user, role, additional }: { mustVerifyEmail: b
 
     const { data, setData, patch, errors, processing, recentlySuccessful } = useForm<ProfileForm>(initialData);
 
-    console.log(data);
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
         patch(route("profile.update"), {

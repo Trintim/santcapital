@@ -14,7 +14,7 @@ class StoreDepositRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->hasRole(Role::Employee) ?? false;
+        return $this->user()?->hasAnyRole([Role::Employee, Role::Admin]) ?? false;
     }
 
     public function rules(): array

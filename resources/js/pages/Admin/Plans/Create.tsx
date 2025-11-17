@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import AppLayout from "@/layouts/app-layout";
 import { Head, Link, useForm } from "@inertiajs/react";
+import React from "react";
 import { toast } from "sonner";
 
 export default function Create() {
@@ -24,7 +25,7 @@ export default function Create() {
         is_active: true,
     });
 
-    function submit(e: any) {
+    function submit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         post(route("admin.plans.store"), {
             onSuccess: () => {
@@ -61,6 +62,7 @@ export default function Create() {
                                 value={data.lockup_days}
                                 onChange={(e) => setData("lockup_days", Number(e.target.value))}
                             />
+                            {errors.lockup_days && <p className="mt-1 text-sm text-red-500">{errors.lockup_days}</p>}
                         </div>
 
                         <div>
@@ -74,6 +76,7 @@ export default function Create() {
                                     setData("minimum_deposit_amount", e.target.value);
                                 }}
                             />
+                            {errors.minimum_deposit_amount && <p className="mt-1 text-sm text-red-500">{errors.minimum_deposit_amount}</p>}
                         </div>
 
                         <div>
@@ -86,41 +89,45 @@ export default function Create() {
                                     setData("contract_term_months", e.target.value ? Number(e.target.value) : null);
                                 }}
                             />
+                            {errors.contract_term_months && <p className="mt-1 text-sm text-red-500">{errors.contract_term_months}</p>}
                         </div>
 
                         <div className="md:col-span-2">
                             <Label htmlFor="description">Descrição (PT-BR)</Label>
                             <Textarea id="description" rows={4} value={data.description} onChange={(e) => setData("description", e.target.value)} />
+                            {errors.description && <p className="mt-1 text-sm text-red-500">{errors.description}</p>}
                         </div>
 
                         <div>
                             <Label htmlFor="expected_return_min_decimal">Rendimento esperado (mín., decimal)</Label>
                             <Input
                                 id="expected_return_min_decimal"
-                                placeholder="0.0265 = 2,65%"
                                 value={data.expected_return_min_decimal}
                                 onChange={(e) => setData("expected_return_min_decimal", e.target.value)}
                             />
+                            {errors.expected_return_min_decimal && <p className="mt-1 text-sm text-red-500">{errors.expected_return_min_decimal}</p>}
                         </div>
 
                         <div>
                             <Label htmlFor="expected_return_max_decimal">Rendimento esperado (máx., decimal)</Label>
                             <Input
                                 id="expected_return_max_decimal"
-                                placeholder="0.0392 = 3,92%"
                                 value={data.expected_return_max_decimal}
                                 onChange={(e) => setData("expected_return_max_decimal", e.target.value)}
                             />
+                            {errors.expected_return_max_decimal && <p className="mt-1 text-sm text-red-500">{errors.expected_return_max_decimal}</p>}
                         </div>
 
                         <div>
                             <Label htmlFor="extra_bonus_percent_on_capital_decimal">Bônus sobre capital (decimal)</Label>
                             <Input
                                 id="extra_bonus_percent_on_capital_decimal"
-                                placeholder="0.015 = +1,5%"
                                 value={data.extra_bonus_percent_on_capital_decimal}
                                 onChange={(e) => setData("extra_bonus_percent_on_capital_decimal", e.target.value)}
                             />
+                            {errors.extra_bonus_percent_on_capital_decimal && (
+                                <p className="mt-1 text-sm text-red-500">{errors.extra_bonus_percent_on_capital_decimal}</p>
+                            )}
                         </div>
 
                         <div className="flex items-center space-x-2">
@@ -132,16 +139,19 @@ export default function Create() {
                                 }}
                             />
                             <Label htmlFor="withdrawal_only_at_maturity">Saque somente no vencimento</Label>
+                            {errors.withdrawal_only_at_maturity && <p className="mt-1 text-sm text-red-500">{errors.withdrawal_only_at_maturity}</p>}
                         </div>
 
                         <div>
                             <Label htmlFor="guaranteed_min_multiplier_after_24m">Garantia mínima (após 24m, multiplicador)</Label>
                             <Input
                                 id="guaranteed_min_multiplier_after_24m"
-                                placeholder="2.00"
                                 value={data.guaranteed_min_multiplier_after_24m}
                                 onChange={(e) => setData("guaranteed_min_multiplier_after_24m", e.target.value)}
                             />
+                            {errors.guaranteed_min_multiplier_after_24m && (
+                                <p className="mt-1 text-sm text-red-500">{errors.guaranteed_min_multiplier_after_24m}</p>
+                            )}
                         </div>
 
                         <div className="flex items-center space-x-2">
@@ -153,6 +163,7 @@ export default function Create() {
                                 }}
                             />
                             <Label htmlFor="is_active">Plano ativo</Label>
+                            {errors.is_active && <p className="mt-1 text-sm text-red-500">{errors.is_active}</p>}
                         </div>
 
                         <div className="flex gap-2 md:col-span-2">

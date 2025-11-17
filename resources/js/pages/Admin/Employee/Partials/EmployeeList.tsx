@@ -25,6 +25,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useFilter } from "@/hooks/useFilter";
 import { useSort } from "@/hooks/useSort";
 import { formatCpfCnpj, formatPhoneBr } from "@/lib/utils";
+import { EmployeeResource } from "@/types/employee";
 import { filterQueryParams } from "@/utils";
 import { router, useForm } from "@inertiajs/react";
 import { CheckCircle2, MoreHorizontal, Pencil, PlusIcon, Search, Trash2, XCircle } from "lucide-react";
@@ -175,7 +176,7 @@ export function EmployeeList({ pagination, filters }: Readonly<EmployeeProps>) {
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                pagination.data.map((emp: any, index: number) => {
+                                pagination.data.map((emp: EmployeeResource, index: number) => {
                                     const isMenuOpen = menuOpenId === emp.id;
                                     return (
                                         <TableRow key={String(emp.id)} className="hover:!bg-secondary/10">

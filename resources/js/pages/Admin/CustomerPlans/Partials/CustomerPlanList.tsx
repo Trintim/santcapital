@@ -23,8 +23,9 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useFilter } from "@/hooks/useFilter";
 import { useSort } from "@/hooks/useSort";
-import { CustomerPlanResource } from "@/types/customer-plan";
-import { PaginationData } from "@/types/pagination";
+import type { SortDirection } from "@/types";
+import type { CustomerPlanResource } from "@/types/customer-plan";
+import type { PaginationData } from "@/types/pagination";
 import { filterQueryParams } from "@/utils";
 import { router, useForm } from "@inertiajs/react";
 import { Bolt, MoreHorizontal, PlusIcon, Search, Trash2 } from "lucide-react";
@@ -32,26 +33,31 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { route } from "ziggy-js";
 
-interface Props {
-    pagination: PaginationData<CustomerPlanResource>;
-    filters: any;
+export interface CustomerPlanFilters {
+    [key: string]: string | number | undefined;
+    search?: string;
+    "per-page"?: number;
+    "sort-by"?: string;
+    direction?: SortDirection;
 }
 
-export function CustomerPlanList({ pagination, filters }: Props) {
-    const { data, setData } = useForm({
-        search: filters.search || "",
-        "per-page": filters["per-page"] || 15,
+export function CustomerPlanList({ pagination, filters }: { pagination: PaginationData<CustomerPlanResource>; filters: CustomerPlanFilters }) {
+    const { data, setData } = useForm<CustomerPlanFilters>({
+        search: typeof filters.search === "string" ? filters.search : "",
+        "per-page": typeof filters["per-page"] === "number" ? filters["per-page"] : 15,
+        "sort-by": typeof filters["sort-by"] === "string" ? filters["sort-by"] : "id",
+        direction: (filters.direction as SortDirection) || "asc",
     });
 
     const { handleDebounceFilter } = useFilter({
+        initialData: undefined,
         path: route("admin.customer-plans.index"),
-        initialData: data,
         onDataChange: setData,
     });
 
     const { handleSort, getSortDirection } = useSort({
-        sortBy: filters["sort-by"] || "status",
-        sortDirection: filters.direction || "asc",
+        sortBy: typeof filters["sort-by"] === "string" ? filters["sort-by"] : "id",
+        sortDirection: (filters.direction as SortDirection) || "asc",
     });
 
     const handlePerPage = (perPage: number) => {
@@ -143,19 +149,33 @@ export function CustomerPlanList({ pagination, filters }: Props) {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>ID</TableHead>
-                                <TableHead sortable sortBy={"name"} sortDirection={getSortDirection("name")} onSort={handleOnSort}>
+                                <TableHead sortable sortBy={"id"} sortDirection={getSortDirection("id")} onSort={handleOnSort}>
+                                    ID
+                                </TableHead>
+                                <TableHead sortable sortBy={"user_id"} sortDirection={getSortDirection("user_id")} onSort={handleOnSort}>
                                     Cliente
                                 </TableHead>
-                                <TableHead>Plano</TableHead>
-                                <TableHead sortable onSort={() => handleOnSort("chosen_lockup_days")}>
-                                    Carência escolhida (dias)
+                                <TableHead
+                                    sortable
+                                    sortBy={"investment_plan_id"}
+                                    sortDirection={getSortDirection("investment_plan_id")}
+                                    onSort={handleOnSort}
+                                >
+                                    Plano
+                                </TableHead>
+                                <TableHead
+                                    sortable
+                                    sortBy={"chosen_lockup_days"}
+                                    sortDirection={getSortDirection("chosen_lockup_days")}
+                                    onSort={handleOnSort}
+                                >
+                                    Carência
+                                </TableHead>
+                                <TableHead sortable sortBy={"activated_on"} sortDirection={getSortDirection("activated_on")} onSort={handleOnSort}>
+                                    Ativado em
                                 </TableHead>
                                 <TableHead sortable sortBy={"status"} sortDirection={getSortDirection("status")} onSort={handleOnSort}>
                                     Status
-                                </TableHead>
-                                <TableHead sortable onSort={() => handleOnSort("activated_on")}>
-                                    Ativado em
                                 </TableHead>
                                 <TableHead>
                                     <span className="sr-only">Ações</span>
@@ -171,7 +191,7 @@ export function CustomerPlanList({ pagination, filters }: Props) {
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                pagination.data.map((cp: any, index: number) => {
+                                pagination.data.map((cp: CustomerPlanResource, index: number) => {
                                     const canActivate = cp.status === "pre_active";
                                     const isMenuOpen = menuOpenId === cp.id;
 
@@ -287,7 +307,7 @@ export function CustomerPlanList({ pagination, filters }: Props) {
                 </AlertDialogContent>
             </AlertDialog>
 
-            <Paginate meta={pagination?.meta} perPage={data["per-page"]} setPerPage={handlePerPage} />
+            <Paginate meta={pagination?.meta} perPage={Number(data["per-page"])} setPerPage={handlePerPage} />
         </div>
     );
 }

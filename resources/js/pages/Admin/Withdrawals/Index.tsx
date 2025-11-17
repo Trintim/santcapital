@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import AppLayout from "@/layouts/app-layout";
+import type { PaginationData } from "@/types/pagination";
 import { Head, router, useForm } from "@inertiajs/react";
 import { CheckCircle, MoreHorizontal, XCircle } from "lucide-react";
 import * as React from "react";
@@ -40,7 +41,7 @@ type Withdrawal = {
 };
 
 type PageProps = {
-    withdrawals: { data: Withdrawal[]; meta?: any };
+    withdrawals: { data: Withdrawal[]; meta?: PaginationData<Withdrawal>["meta"] };
     filters: { status: string; per_page: number };
 };
 
@@ -54,7 +55,7 @@ export default function Index({ withdrawals, filters }: PageProps) {
         per_page: Number(filters.per_page || 15),
     });
 
-    const go = (patch: Record<string, any>) => {
+    const go = (patch: Record<string, string | number>) => {
         router.get(route("admin.withdrawals.index"), { ...data, ...patch }, { preserveScroll: true, preserveState: true });
     };
 
