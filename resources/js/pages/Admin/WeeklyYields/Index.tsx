@@ -86,23 +86,6 @@ export default function WeeklyYieldsIndex({ customYields, filters }: Props & { f
         });
     };
 
-    const handleRunJob = () => {
-        setJobLoading(true);
-        router.post(
-            route("admin.weekly-yields.run-job"),
-            {},
-            {
-                preserveState: true,
-                onSuccess: () => {
-                    toast.success("Job semanal disparado com sucesso!");
-                    window.location.reload();
-                },
-                onError: () => toast.error("Erro ao executar job semanal."),
-                onFinish: () => setJobLoading(false),
-            },
-        );
-    };
-
     return (
         <AppLayout>
             <Head title="Rendimentos Semanais" />
@@ -130,9 +113,6 @@ export default function WeeklyYieldsIndex({ customYields, filters }: Props & { f
                                 {" "}
                                 <Button>Cadastrar rendimento</Button>{" "}
                             </Link>
-                            <Button variant="outline" disabled={jobLoading} onClick={handleRunJob}>
-                                {jobLoading ? "Executando..." : "Testar Job Semanal"}
-                            </Button>
                         </div>
                     </div>
                     {hasItems ? (

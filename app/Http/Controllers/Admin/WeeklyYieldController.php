@@ -6,9 +6,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\CustomerPlanCustomYieldResource;
+use App\Models\CustomerPlan;
 use App\Models\CustomerPlanCustomYield;
 use App\Models\InvestmentPlan;
+use DB;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class WeeklyYieldController extends Controller
 {
@@ -19,7 +22,7 @@ class WeeklyYieldController extends Controller
         $search    = $request->input('search');
         $perPage   = $request->input('per-page', 15);
 
-        $query = \App\Models\CustomerPlanCustomYield::with(['customerPlan.customer', 'customerPlan.plan']);
+        $query = CustomerPlanCustomYield::with(['customerPlan.customer', 'customerPlan.plan']);
 
         if ($search) {
             $query->whereHas('customerPlan.customer', function ($q) use ($search) {
@@ -33,7 +36,7 @@ class WeeklyYieldController extends Controller
                 ->withQueryString()
         );
 
-        return \Inertia\Inertia::render('Admin/WeeklyYields/Index', [
+        return Inertia::render('Admin/WeeklyYields/Index', [
             'customYields' => $customYields,
             'filters'      => [
                 'search'    => $search,
@@ -72,7 +75,7 @@ class WeeklyYieldController extends Controller
     {
         $user          = $request->user();
         $plans         = InvestmentPlan::select(['id', 'name'])->where('is_active', true)->orderBy('name')->get();
-        $customerPlans = \App\Models\CustomerPlan::with(['customer:id,name', 'plan:id,name'])
+        $customerPlans = CustomerPlan::with(['customer:id,name', 'plan:id,name'])
             ->where('status', 'active')
             ->get()
             ->map(function ($cp) {
@@ -84,7 +87,7 @@ class WeeklyYieldController extends Controller
                 ];
             });
 
-        return \Inertia\Inertia::render('Admin/WeeklyYields/Form', [
+        return Inertia::render('Admin/WeeklyYields/Form', [
             'plans'         => $plans,
             'customerPlans' => $customerPlans,
             'userId'        => $user->id,
@@ -98,7 +101,7 @@ class WeeklyYieldController extends Controller
         if (! $customYield) {
             abort(404);
         }
-        $customerPlans = \App\Models\CustomerPlan::with(['customer:id,name', 'plan:id,name'])
+        $customerPlans = CustomerPlan::with(['customer:id,name', 'plan:id,name'])
             ->where('status', 'active')
             ->get()
             ->map(function ($cp) {
@@ -110,7 +113,7 @@ class WeeklyYieldController extends Controller
                 ];
             });
 
-        return \Inertia\Inertia::render('Admin/WeeklyYields/Edit', [
+        return Inertia::render('Admin/WeeklyYields/Edit', [
             'customYield'   => $customYield->toArray(),
             'customerPlans' => $customerPlans,
         ]);
@@ -135,24 +138,9 @@ class WeeklyYieldController extends Controller
         return redirect()->route('admin.weekly-yields.index')->with('success', 'Rendimento personalizado atualizado!');
     }
 
-    public function runJob(Request $request)
-    {
-        // Para teste, pega o primeiro plano ativo e a semana atual
-        $plan   = InvestmentPlan::where('is_active', true)->first();
-        $period = now()->startOfWeek()->toDateString();
-
-        if ($plan) {
-            \App\Jobs\ApplyWeeklyYieldJob::dispatch($plan->id, $period);
-
-            return back()->with('success', 'Job semanal disparado para plano ' . $plan->name . ' e período ' . $period);
-        }
-
-        return back()->with('error', 'Nenhum plano ativo encontrado para testar o job.');
-    }
-
     public function destroy($id)
     {
-        \DB::table('customer_plan_custom_yields')->where('id', $id)->delete();
+        DB::table('customer_plan_custom_yields')->where('id', $id)->delete();
 
         return back()->with('success', 'Rendimento personalizado removido!');
     }
