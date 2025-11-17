@@ -31,8 +31,7 @@ class ApplyWeeklyYieldJob implements ShouldQueue
     public function __construct(
         public int $investmentPlanId,
         public string $period // 'YYYY-MM-DD' (primeiro dia da semana)
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {
@@ -60,10 +59,10 @@ class ApplyWeeklyYieldJob implements ShouldQueue
             $balances = DB::table('money_transactions')
                 ->selectRaw(
                     'customer_plan_id,
-                SUM(CASE
-                    WHEN type = ? THEN amount
-                    WHEN type = ? THEN amount
-                    WHEN type = ? THEN -amount
+                    SUM(CASE
+                        WHEN type = ? THEN amount
+                        WHEN type = ? THEN amount
+                        WHEN type = ? THEN -amount
                     ELSE 0 END) AS balance',
                     [
                         MoneyTransaction::TYPE_DEPOSIT,
@@ -75,6 +74,7 @@ class ApplyWeeklyYieldJob implements ShouldQueue
                 ->where('status', MoneyTransaction::STATUS_APPROVED)
                 ->whereDate('effective_date', '<=', $periodEnd)
                 ->groupBy('customer_plan_id')
+                ->get()
                 ->pluck('balance', 'customer_plan_id');
 
             if ($balances->isEmpty()) {
@@ -106,7 +106,7 @@ class ApplyWeeklyYieldJob implements ShouldQueue
                     ->all();
             }
 
-            $maxAbsRate = $maxRate !== null ? abs($maxRate) : null;
+            $maxAbsRate = $maxRate !== null ? abs((float) $maxRate) : null;
 
             foreach ($balances as $cpId => $base) {
                 $base = (float) $base;
@@ -127,8 +127,12 @@ class ApplyWeeklyYieldJob implements ShouldQueue
                     }
                 }
 
-                if ($maxAbsRate !== null && abs($appliedRate) > $maxAbsRate) {
-                    $appliedRate = $appliedRate < 0 ? -$maxAbsRate : $maxAbsRate;
+                if ($maxAbsRate !== null && abs((float) $appliedRate) > $maxAbsRate) {
+                    $appliedRate = (float) $appliedRate < 0 ? -$maxAbsRate : $maxAbsRate;
+                }
+
+                if ($minRate !== null && abs((float) $appliedRate) < abs((float) $minRate)) {
+                    $appliedRate = $appliedRate < 0 ? -abs((float) $minRate) : abs((float) $minRate);
                 }
                 $amount = round($base * $appliedRate, 2);
 
