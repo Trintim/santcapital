@@ -30,8 +30,8 @@ class CustomerPlanCustomYield extends Model
     protected function percentDecimal(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => $value * 100,
-            set: fn ($value) => $value / 100,
+            get: fn (float $value) => $value * 100,
+            set: fn (float $value) => $value / 100,
         );
     }
 }

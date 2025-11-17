@@ -58,6 +58,8 @@ export default function WeeklyYieldsIndex({ customYields, filters }: Props & { f
     const deleteCancelRef = useRef<HTMLButtonElement | null>(null);
     const hasItems = customYields.data.length > 0;
 
+    console.log(customYields);
+
     const handlePerPage = (perPage: number) => {
         setPerPage(perPage);
         setData((prev: typeof data) => ({ ...prev, "per-page": perPage }));
